@@ -65,3 +65,28 @@ async def test_unload_clears_all_issues(hass) -> None:
 
     registry = ir.async_get(hass)
     assert registry.async_get_issue(DOMAIN, f"{entry.entry_id}_empty_snapshots") is None
+
+
+async def test_unload_clears_health_issues(hass, monkeypatch) -> None:
+    from datetime import datetime, timedelta, timezone
+
+    from homeassistant.util import dt as dt_util
+
+    from custom_components.cupra_eu_data_act.const import SUBSCRIPTION_VALIDITY
+
+    entry = _make_entry(hass)
+    coordinator = EudaCoordinator(hass, entry, MagicMock())
+    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    monkeypatch.setattr(dt_util, "utcnow", lambda: now)
+    coordinator.subscription_created_on = now - SUBSCRIPTION_VALIDITY + timedelta(days=5)
+    async_update_issues(hass, entry, coordinator)
+
+    async_clear_issues(hass, entry)
+
+    registry = ir.async_get(hass)
+    assert (
+        registry.async_get_issue(
+            DOMAIN, f"{entry.entry_id}_subscription_expiring_soon"
+        )
+        is None
+    )

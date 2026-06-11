@@ -52,9 +52,20 @@ async def async_get_config_entry_diagnostics(
             "empty_snapshot_count": coordinator.empty_snapshot_count,
             "has_data": bool(points),
             "dataset_format": detect_dataset_format(points) if points else None,
+            "subscription_created_on": (
+                coordinator.subscription_created_on.isoformat()
+                if coordinator.subscription_created_on
+                else None
+            ),
+            "listing_identifier": coordinator.listing_identifier,
+            "days_until_subscription_expires": coordinator.days_until_subscription_expires,
+            "minutes_since_last_snapshot": coordinator.minutes_since_last_snapshot,
         },
         "latest_dataset": None,
         "field_coverage": field_coverage(points) if points else None,
+        "uncurated_fields_sample": (
+            field_coverage(points)["uncurated_fields"][:20] if points else None
+        ),
         "config_entry": {
             "entry_id": entry.entry_id,
             "title": entry.title,

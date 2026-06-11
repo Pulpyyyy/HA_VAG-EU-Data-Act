@@ -7,7 +7,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import EntityCategory
+from homeassistant.const import EntityCategory, UnitOfTime
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -24,10 +24,12 @@ from .data import (
     DataPoint,
     curated_translation_key,
     detect_dataset_format,
+    field_coverage,
     find_by_field,
     friendly_name,
     is_sentinel,
     resolve_distance_unit,
+    total_charged_energy_kwh,
 )
 from .entity import EudaEntity
 
@@ -41,7 +43,14 @@ async def async_setup_entry(
 
     # Status sensor is always present, even before the first dataset arrives,
     # so the user sees a device with a state explaining what's happening.
-    async_add_entities([EudaStatusSensor(coordinator)])
+    async_add_entities(
+        [
+            EudaStatusSensor(coordinator),
+            EudaDaysUntilSubscriptionExpiresSensor(coordinator),
+            EudaMinutesSinceLastSnapshotSensor(coordinator),
+            EudaUncuratedFieldsCountSensor(coordinator),
+        ]
+    )
 
     added_curated: set[str] = set()
     added_raw_keys: set[str] = set()
@@ -73,6 +82,11 @@ async def async_setup_entry(
 
         for curated in curated_sensors:
             if curated.field_name in added_curated:
+                continue
+            if curated.field_name == "last_charge_kwh":
+                if total_charged_energy_kwh(points) is not None:
+                    new_entities.append(EudaCuratedSensor(coordinator, curated))
+                    added_curated.add(curated.field_name)
                 continue
             # Timestamp sensors track ".timestamp" on a base field (e.g.
             # mileage.value.timestamp). They appear once the base field arrives.
@@ -106,6 +120,7 @@ class EudaCuratedSensor(EudaEntity, SensorEntity):
     def __init__(self, coordinator: EudaCoordinator, curated: CuratedSensor) -> None:
         super().__init__(coordinator)
         self._curated = curated
+        self._last_charge_total_kwh: float | None = None
         self._attr_unique_id = f"{coordinator.vin}_{curated.field_name}"
         self._attr_translation_key = curated_translation_key(
             curated.field_name, curated.translation_key
@@ -148,6 +163,20 @@ class EudaCuratedSensor(EudaEntity, SensorEntity):
             return self._sticky(None)
 
         field_name = self._curated.field_name
+        if field_name == "last_charge_kwh":
+            total = total_charged_energy_kwh(self.coordinator.data or {})
+            if total is None:
+                return self._sticky(None)
+            if self._last_charge_total_kwh is None:
+                self._last_charge_total_kwh = total
+                return self._sticky(None)
+            delta = total - self._last_charge_total_kwh
+            self._last_charge_total_kwh = total
+            if delta > 0:
+                return self._sticky(round(delta, 3))
+            # Ignore resets / plateaus and keep the previous "last charge" value.
+            return self._sticky(None)
+
         dp = find_by_field(self.coordinator.data or {}, field_name)
 
         if not dp:
@@ -294,4 +323,95 @@ class EudaStatusSensor(EudaEntity, SensorEntity):
             attrs["latest_dataset_captured_at"] = (
                 self.coordinator.latest_dataset.captured_at.isoformat()
             )
+        if self.coordinator.subscription_created_on:
+            attrs["subscription_created_on"] = (
+                self.coordinator.subscription_created_on.isoformat()
+            )
+        if self.coordinator.listing_identifier:
+            attrs["listing_identifier"] = self.coordinator.listing_identifier
         return attrs
+
+
+class EudaDaysUntilSubscriptionExpiresSensor(EudaEntity, SensorEntity):
+    """Diagnostic: estimated days until the portal subscription expires (~12 months)."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:calendar-clock"
+    _attr_translation_key = "days_until_subscription_expires"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator: EudaCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.vin}_days_until_subscription_expires"
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> int | None:
+        return self.coordinator.days_until_subscription_expires
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs: dict = {}
+        if self.coordinator.subscription_created_on:
+            attrs["subscription_created_on"] = (
+                self.coordinator.subscription_created_on.isoformat()
+            )
+        if self.coordinator.listing_identifier:
+            attrs["listing_identifier"] = self.coordinator.listing_identifier
+        return attrs
+
+
+class EudaMinutesSinceLastSnapshotSensor(EudaEntity, SensorEntity):
+    """Diagnostic: minutes since the last real vehicle snapshot."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:clock-alert-outline"
+    _attr_translation_key = "minutes_since_last_snapshot"
+    _attr_native_unit_of_measurement = UnitOfTime.MINUTES
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator: EudaCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.vin}_minutes_since_last_snapshot"
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> int | None:
+        return self.coordinator.minutes_since_last_snapshot
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs: dict = {}
+        if snap := self.coordinator.last_snapshot_at:
+            attrs["last_snapshot_at"] = snap.isoformat()
+        return attrs
+
+
+class EudaUncuratedFieldsCountSensor(EudaEntity, SensorEntity):
+    """Diagnostic: count of dataset fields without a curated sensor mapping."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:format-list-numbered"
+    _attr_translation_key = "uncurated_fields_count"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator: EudaCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.vin}_uncurated_fields_count"
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> int | None:
+        points = self.coordinator.data
+        if not points:
+            return None
+        return field_coverage(points)["uncurated_count"]

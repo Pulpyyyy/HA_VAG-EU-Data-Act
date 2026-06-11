@@ -16,6 +16,7 @@ from .data import (
     CURATED_BINARY_FLAT,
     CuratedBinary,
     DataPoint,
+    curated_translation_key,
     decode_binary_state,
     detect_dataset_format,
     find_by_field,
@@ -70,7 +71,7 @@ class EudaBinarySensor(EudaEntity, BinarySensorEntity):
         super().__init__(coordinator)
         self._curated = curated
         self._attr_unique_id = f"{coordinator.vin}_{curated.field_name}"
-        self._attr_name = curated.name
+        self._attr_translation_key = curated_translation_key(curated.field_name)
         if curated.icon:
             self._attr_icon = curated.icon
         if curated.device_class:

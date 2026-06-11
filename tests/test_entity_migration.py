@@ -43,3 +43,32 @@ def test_translation_key_unknown_raw_sensor() -> None:
         )
         is None
     )
+
+
+def test_translation_key_for_curated_binary_sensor() -> None:
+    assert (
+        translation_key_for_unique_id(
+            "WVWZZZTESTVIN0001_locked", "WVWZZZTESTVIN0001"
+        )
+        == "locked"
+    )
+
+
+def test_translation_key_for_dotted_binary_sensor() -> None:
+    assert (
+        translation_key_for_unique_id(
+            "WVWZZZTESTVIN0001_charge_mode_selection_options.immediate_charging",
+            "WVWZZZTESTVIN0001",
+        )
+        == "charge_mode_selection_options_immediate_charging"
+    )
+
+
+def test_translation_key_for_flat_binary_sensor() -> None:
+    assert (
+        translation_key_for_unique_id(
+            "WVWZZZTESTVIN0001_open_state_front_left_door",
+            "WVWZZZTESTVIN0001",
+        )
+        == "open_state_front_left_door"
+    )

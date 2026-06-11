@@ -147,6 +147,12 @@ def main() -> int:
     _charged = next(s for s in data.CURATED_SENSORS_FLAT if s.field_name == "charged_energy")
     check("charged_energy total_increasing", _charged.state_class, "total_increasing")
     check("charged_energy device_class energy", _charged.device_class, "energy")
+    _last_charge = next(
+        s for s in data.CURATED_SENSORS_DOTTED if s.field_name == "last_charge_kwh"
+    )
+    check("last_charge has translation_key", _last_charge.translation_key, "last_charge_kwh")
+    check("last_charge device_class energy", _last_charge.device_class, "energy")
+    check("last_charge state_class measurement", _last_charge.state_class, "measurement")
     _batt_energy = next(
         s
         for s in data.CURATED_SENSORS_DOTTED
@@ -339,6 +345,39 @@ def main() -> int:
     ]})
     unit_dp = ds_mi.by_field("mileage.unit")
     check("resolved unit from dataset", data.resolve_distance_unit(unit_dp.value), "mi")
+
+    # --- charged-energy harmonisation across dataset formats ----------------
+    print("charged-energy harmonisation:")
+    dotted_energy = data.Dataset.from_json(
+        {
+            "vin": "V",
+            "user_id": "u",
+            "Data": [
+                {
+                    "key": "c1",
+                    "dataFieldName": "battery_state_report.charge_energy",
+                    "value": "12.4",
+                }
+            ],
+        }
+    )
+    flat_energy = data.Dataset.from_json(
+        {
+            "vin": "V",
+            "user_id": "u",
+            "Data": [{"key": "c2", "dataFieldName": "charged_energy", "value": "124"}],
+        }
+    )
+    check(
+        "dotted charged energy -> kWh",
+        data.total_charged_energy_kwh(dotted_energy.points),
+        12.4,
+    )
+    check(
+        "flat charged_energy deci-kWh -> kWh",
+        data.total_charged_energy_kwh(flat_energy.points),
+        12.4,
+    )
 
     # --- friendly names for bare fields ------------------------------------
     print("friendly raw names:")

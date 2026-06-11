@@ -26,6 +26,7 @@ from .data import load_dictionary
 from .entity_migration import async_migrate_entity_translations
 from .issues import async_clear_issues, async_update_issues
 from .services import async_setup_services, async_unload_services
+from .utility_meter import async_ensure_utility_meters
 
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.BUTTON]
 
@@ -98,6 +99,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: EudaConfigEntry) -> bool
         @callback
         def _on_coordinator_update() -> None:
             async_update_issues(hass, entry, coordinator)
+            hass.async_create_task(async_ensure_utility_meters(hass, entry))
 
         entry.async_on_unload(coordinator.async_add_listener(_on_coordinator_update))
         _on_coordinator_update()

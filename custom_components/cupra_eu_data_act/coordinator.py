@@ -23,8 +23,9 @@ from .const import (
     NO_CONTENT_SUFFIX,
     POST_DATASET_BUFFER,
     RETRY_INTERVAL,
+    SUBSCRIPTION_VALIDITY,
 )
-from .data import Dataset, DataPoint
+from .data import Dataset, DataPoint, find_by_field, parse_timestamp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -102,9 +103,65 @@ class EudaCoordinator(DataUpdateCoordinator[dict[str, DataPoint]]):
         # _async_update_data on each refresh.
         self.status_label: str = "starting"
         self.empty_snapshot_count: int = 0
+        # Earliest createdOn seen in the dataset listing (proxy for subscription
+        # start); refreshed on every list call.
+        self.subscription_created_on: datetime | None = None
+        self.listing_identifier: str | None = entry.data.get(CONF_IDENTIFIER)
+        # Newest createdOn among content (non-empty) listing entries.
+        self.last_listing_content_at: datetime | None = None
+
+    @property
+    def last_snapshot_at(self) -> datetime | None:
+        """Best-known timestamp of the last real (non-empty) vehicle snapshot."""
+        candidates: list[datetime] = []
+        if self.last_listing_content_at is not None:
+            candidates.append(self.last_listing_content_at)
+        if self.latest_dataset and self.latest_dataset.captured_at is not None:
+            candidates.append(self.latest_dataset.captured_at)
+        dp = find_by_field(self.data or {}, "car_captured_time")
+        if dp is not None:
+            if ts := parse_timestamp(dp.raw_value):
+                candidates.append(ts)
+        return max(candidates) if candidates else None
+
+    @property
+    def days_until_subscription_expires(self) -> int | None:
+        """Estimated days until the ~12-month portal subscription lapses."""
+        if self.subscription_created_on is None:
+            return None
+        expiry = self.subscription_created_on + SUBSCRIPTION_VALIDITY
+        return (expiry - dt_util.utcnow()).days
+
+    @property
+    def minutes_since_last_snapshot(self) -> int | None:
+        """Minutes since the last real snapshot, or None if unknown."""
+        if (snap := self.last_snapshot_at) is None:
+            return None
+        return int((dt_util.utcnow() - snap).total_seconds() // 60)
+
+    def _update_listing_metadata(self, listing: list[dict]) -> None:
+        """Track subscription and snapshot timing from the dataset listing."""
+        self.listing_identifier = self.identifier
+        timestamps = [
+            ts
+            for entry in listing
+            if entry.get("name") and (ts := _created_on(entry))
+        ]
+        if timestamps:
+            self.subscription_created_on = min(timestamps)
+        content_timestamps = [
+            ts
+            for entry in listing
+            if entry.get("name")
+            and not entry["name"].endswith(NO_CONTENT_SUFFIX)
+            and (ts := _created_on(entry))
+        ]
+        if content_timestamps:
+            self.last_listing_content_at = max(content_timestamps)
 
     async def _async_update_data(self) -> dict[str, DataPoint]:
         listing = await self._async_list_with_refresh()
+        self._update_listing_metadata(listing)
 
         # content datasets, oldest -> newest by createdOn
         content = sorted(

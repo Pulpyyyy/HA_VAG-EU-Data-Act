@@ -387,6 +387,26 @@ def deci_kwh_to_kwh(value) -> float | None:
         return None
 
 
+def total_charged_energy_kwh(points: dict[str, "DataPoint"]) -> float | None:
+    """Return a cumulative charged-energy total in kWh from the dataset.
+
+    Dotted datasets expose ``battery_state_report.charge_energy`` directly in
+    kWh, while flat datasets expose ``charged_energy`` in deci-kWh.
+    """
+    dotted = find_by_field(points, "battery_state_report.charge_energy")
+    if dotted is not None and not is_sentinel(dotted.value, dotted.field_name):
+        try:
+            return float(dotted.value)
+        except (TypeError, ValueError):
+            pass
+
+    flat = find_by_field(points, "charged_energy")
+    if flat is not None and not is_sentinel(flat.value, flat.field_name):
+        return deci_kwh_to_kwh(flat.value)
+
+    return None
+
+
 def electr_consumption_kwh_per_1000km_to_kwh_per_100km(value) -> float | None:
     """Convert electric consumption from kWh/1000km to kWh/100km.
 
@@ -583,6 +603,15 @@ CURATED_SENSORS_DOTTED: tuple[CuratedSensor, ...] = (
         "kWh",
         "total_increasing",
         icon="mdi:lightning-bolt-circle",
+    ),
+    CuratedSensor(
+        "last_charge_kwh",
+        "Last charge",
+        "energy",
+        "kWh",
+        "measurement",
+        icon="mdi:battery-charging-wireless",
+        translation_key="last_charge_kwh",
     ),
     CuratedSensor(
         "battery_state_report.remaining_charging_time_complete",
@@ -991,6 +1020,15 @@ CURATED_SENSORS_FLAT: tuple[CuratedSensor, ...] = (
         "total_increasing",
         transform="deci_kwh",
         icon="mdi:lightning-bolt-circle",
+    ),
+    CuratedSensor(
+        "last_charge_kwh",
+        "Last charge",
+        "energy",
+        "kWh",
+        "measurement",
+        icon="mdi:battery-charging-wireless",
+        translation_key="last_charge_kwh",
     ),
     # === Fuel ===
     CuratedSensor(

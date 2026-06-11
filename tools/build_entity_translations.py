@@ -14,7 +14,9 @@ COMPONENT = ROOT / "custom_components" / "cupra_eu_data_act"
 
 def _merge(path: Path, lang: str) -> None:
     data = json.loads(path.read_text(encoding="utf-8"))
-    data["entity"] = build_entity_block(lang)
+    entity = data.get("entity", {})
+    entity.update(build_entity_block(lang))
+    data["entity"] = entity
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"updated {path.relative_to(ROOT)}")
 

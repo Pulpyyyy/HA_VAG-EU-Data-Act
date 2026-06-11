@@ -43,4 +43,38 @@ async def test_diagnostics_redacts_secrets(hass) -> None:
     assert "WVWZZZSECRETVIN01" not in dumped
     assert "secret-id" not in dumped
     assert result["status"]["label"] == "ok"
-    assert result["integration"]["version"] == "0.6.2"
+    assert result["integration"]["version"] == "0.6.3"
+
+
+async def test_diagnostics_includes_uncurated_sample(hass) -> None:
+    import json
+    from pathlib import Path
+
+    from custom_components.cupra_eu_data_act.data import Dataset
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_VIN: "WVWZZZSECRETVIN01",
+            CONF_IDENTIFIER: "secret-id",
+            CONF_EMAIL: "user@example.com",
+            CONF_PASSWORD: "hunter2",
+        },
+        unique_id="WVWZZZSECRETVIN01",
+    )
+    entry.add_to_hass(hass)
+    client = MagicMock()
+    coordinator = EudaCoordinator(hass, entry, client)
+    payload = json.loads(
+        (Path(__file__).parent / "fixtures" / "sample_dataset.json").read_text()
+    )
+    coordinator.latest_dataset = Dataset.from_json(payload)
+    coordinator.data = coordinator.latest_dataset.points
+    coordinator.status_label = "ok"
+    entry.runtime_data = EudaRuntimeData(coordinator=coordinator, session=MagicMock())
+
+    result = await async_get_config_entry_diagnostics(hass, entry)
+
+    assert result["uncurated_fields_sample"] is not None
+    assert "report_type" in result["uncurated_fields_sample"]
+    assert len(result["uncurated_fields_sample"]) <= 20

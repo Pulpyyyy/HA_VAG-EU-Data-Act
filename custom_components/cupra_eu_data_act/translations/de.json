@@ -80,6 +80,14 @@
     "empty_snapshots": {
       "title": "Nur leere Schnappschüsse für {vehicle}",
       "description": "Portal-Abo aktiv, bisher nur leere Schnappschüsse ({empty_count} × _no_content_found). Auto aktivieren (fahren, Zündung oder App), damit Telemetrie hochgeladen wird.\n\nHome Assistant versucht es alle {retry_minutes} Minute(n) erneut. Portal: {portal_url}"
+    },
+    "subscription_expiring_soon": {
+      "title": "Portal-Abo läuft bald ab für {vehicle}",
+      "description": "Das EU-Data-Act-Portal-Abo läuft voraussichtlich in {days_until} Tag(en) ab. Die kontinuierliche Datenanfrage muss im Portal verlängert werden, sonst kommen keine Datensätze mehr.\n\nPortal öffnen ({portal_url}) und das Abo vor Ablauf erneuern."
+    },
+    "stale_snapshot": {
+      "title": "Keine aktuellen Fahrzeugdaten für {vehicle}",
+      "description": "Der letzte echte Fahrzeugschnappschuss ist etwa {hours_since} Stunde(n) alt ({minutes_since} Minuten). Das Auto ist möglicherweise offline oder das Portal liefert keine neuen Datensätze.\n\nAuto aktivieren (fahren, Zündung oder App) und die kontinuierliche Anfrage im Portal ({portal_url}) prüfen."
     }
   },
   "entity": {
@@ -317,6 +325,18 @@
       "mileage_timestamp": {
         "name": "Zuletzt verbunden"
       },
+      "last_charge_kwh": {
+        "name": "Letzte Ladung"
+      },
+      "days_until_subscription_expires": {
+        "name": "Tage bis Abo endet"
+      },
+      "minutes_since_last_snapshot": {
+        "name": "Minuten seit letztem Snapshot"
+      },
+      "uncurated_fields_count": {
+        "name": "Nicht kuratierte Felder"
+      },
       "integration_status": {
         "name": "Integrationsstatus",
         "state": {
@@ -434,6 +454,122 @@
           "WINDOW_HEATING_STATE_OFF": "Aus",
           "WINDOW_HEATING_STATE_ON": "An"
         }
+      }
+    },
+    "binary_sensor": {
+      "locked": {
+        "name": "Fahrzeug verriegelt"
+      },
+      "parking_brake": {
+        "name": "Feststellbremse"
+      },
+      "parking_light_left": {
+        "name": "Standlicht links"
+      },
+      "parking_light_right": {
+        "name": "Standlicht rechts"
+      },
+      "charge_mode_selection_options_immediate_charging": {
+        "name": "Sofortladen"
+      },
+      "charge_mode_selection_options_immediate_discharging": {
+        "name": "Sofort entladen"
+      },
+      "charge_mode_selection_options_timer_charging": {
+        "name": "Timer-Laden"
+      },
+      "charge_mode_selection_options_timer_charging_climatization": {
+        "name": "Timer-Laden mit Klima"
+      },
+      "charge_mode_selection_options_home_storage_charging": {
+        "name": "Heimspeicher-Laden"
+      },
+      "charge_mode_selection_options_only_own_current": {
+        "name": "Nur eigener Strom"
+      },
+      "charge_mode_selection_options_preferred_charging_times": {
+        "name": "Bevorzugte Ladezeiten"
+      },
+      "locked_state_front_left_door": {
+        "name": "Türschloss vorne links"
+      },
+      "locked_state_front_right_door": {
+        "name": "Türschloss vorne rechts"
+      },
+      "locked_state__rear_left_door": {
+        "name": "Türschloss hinten links"
+      },
+      "locked_state_rear_right_door": {
+        "name": "Türschloss hinten rechts"
+      },
+      "locked_state_tailgate": {
+        "name": "Heckklappenschloss"
+      },
+      "locked_state_front_engine_bonnet": {
+        "name": "Motorhaubenschloss"
+      },
+      "open_state_front_left_door": {
+        "name": "Tür vorne links"
+      },
+      "open_state_front_right_door": {
+        "name": "Tür vorne rechts"
+      },
+      "open_state_rear_left_door": {
+        "name": "Tür hinten links"
+      },
+      "open_state_rear_right_door": {
+        "name": "Tür hinten rechts"
+      },
+      "open_state_tailgate": {
+        "name": "Heckklappe"
+      },
+      "open_state_front_engine_bonnet": {
+        "name": "Motorhaube"
+      },
+      "safe_state_front_right_door": {
+        "name": "Tür vorne rechts sicher"
+      },
+      "safe_state_rear_left_door": {
+        "name": "Tür hinten links sicher"
+      },
+      "safe_state_rear_right_door": {
+        "name": "Tür hinten rechts sicher"
+      },
+      "safe_state_tailgate": {
+        "name": "Heckklappe sicher"
+      },
+      "safe_state_front_engine_bonnet": {
+        "name": "Motorhaube sicher"
+      },
+      "state_front_left_door_window_lifter": {
+        "name": "Fenster vorne links"
+      },
+      "state_front_right_door_window_lifter": {
+        "name": "Fenster vorne rechts"
+      },
+      "state_rear_left_door_window_lifter": {
+        "name": "Fenster hinten links"
+      },
+      "state_rear_right_door_window_lifter": {
+        "name": "Fenster hinten rechts"
+      },
+      "state_sunroof_motor_hood_1": {
+        "name": "Schiebedach"
+      },
+      "state_sunroof_motor_hood_3": {
+        "name": "Schiebedachmotor 3"
+      },
+      "parking_lights": {
+        "name": "Standlichter"
+      },
+      "state_of_hood": {
+        "name": "Motorhaubenstatus"
+      },
+      "state_service_hatch": {
+        "name": "Serviceklappe"
+      },
+      "state_spoiler": {
+        "name": "Spoiler"
       }
     }
   }

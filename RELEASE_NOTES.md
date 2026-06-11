@@ -1,5 +1,46 @@
 # Release notes
 
+## v0.6.3 — Localization, health, energy & Lovelace hints (2026-06-11)
+
+### Summary
+
+Localized binary sensors, subscription and snapshot health monitoring, energy
+helpers, and Lovelace entity guidance. Includes a startup fix for
+`utility_meter` (`slugify` import).
+
+### Binary sensors localized (Tier A1)
+
+All ~40 curated binary sensors use `translation_key` + multilingual names
+(de / en / fr / it / nl). Entity registry migration covers `binary_sensor`
+domain entries.
+
+### Portal health (Tier A3 + B11 + B12)
+
+| Entity | Purpose |
+|--------|---------|
+| `days_until_subscription_expires` | Estimated days left on ~12-month portal subscription |
+| `minutes_since_last_snapshot` | Age of last real vehicle telemetry |
+| `uncurated_fields_count` | Count of dataset fields without curated mapping |
+
+**Repairs issues:** `subscription_expiring_soon` (≤30 days), `stale_snapshot`
+(>12h). Diagnostics download lists up to 20 uncurated field names.
+
+### Energy (Tier A2 + B8)
+
+- **`last_charge_kwh`** — kWh from the last charging session (delta of cumulative
+  totals when `battery_state_report.charge_energy` or `charged_energy` is present)
+- **Auto utility meters** — monthly helpers for charged energy, mileage, and
+  electric consumption (created on first data if source sensors exist)
+
+See README for Energy dashboard entity recommendations.
+
+### Lovelace hints (Tier B9)
+
+`dashboards/README.md` — which curated entities to add in your own dashboard
+(no YAML templates; entity IDs differ per installation).
+
+---
+
 ## v0.6.2 — Service schema compatibility fix (2026-06-11)
 
 ### Summary

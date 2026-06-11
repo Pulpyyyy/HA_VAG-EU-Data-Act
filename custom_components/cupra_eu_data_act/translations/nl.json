@@ -80,6 +80,14 @@
     "empty_snapshots": {
       "title": "Alleen lege momentopnames voor {vehicle}",
       "description": "Portaal-abonnement is actief maar tot nu toe alleen lege momentopnames ontvangen ({empty_count} × _no_content_found). Activeer de auto (rijden, contact of app) om telemetrie te uploaden.\n\nHome Assistant probeert het elke {retry_minutes} minuut/minuten opnieuw. Portaal: {portal_url}"
+    },
+    "subscription_expiring_soon": {
+      "title": "Portaalabonnement verloopt binnenkort voor {vehicle}",
+      "description": "Het EU Data Act-portaalabonnement verloopt naar schatting over {days_until} dag(en). Het continue dataverzoek moet op het portaal worden verlengd, anders stoppen de datasets.\n\nOpen het portaal ({portal_url}) en verleng het abonnement voordat het verloopt."
+    },
+    "stale_snapshot": {
+      "title": "Geen recente voertuiggegevens voor {vehicle}",
+      "description": "De laatste echte voertuigmomentopname is ongeveer {hours_since} uur oud ({minutes_since} minuten). De auto is mogelijk offline of het portaal levert geen nieuwe datasets meer.\n\nActiveer de auto (rijden, contact of app) en controleer of het continue verzoek actief is op het portaal ({portal_url})."
     }
   },
   "entity": {
@@ -317,6 +325,18 @@
       "mileage_timestamp": {
         "name": "Laatst verbonden"
       },
+      "last_charge_kwh": {
+        "name": "Laatste lading"
+      },
+      "days_until_subscription_expires": {
+        "name": "Dagen tot abonnement verloopt"
+      },
+      "minutes_since_last_snapshot": {
+        "name": "Minuten sinds laatste snapshot"
+      },
+      "uncurated_fields_count": {
+        "name": "Niet-gecureerde velden"
+      },
       "integration_status": {
         "name": "Integratiestatus",
         "state": {
@@ -434,6 +454,122 @@
           "WINDOW_HEATING_STATE_OFF": "Uit",
           "WINDOW_HEATING_STATE_ON": "Aan"
         }
+      }
+    },
+    "binary_sensor": {
+      "locked": {
+        "name": "Voertuig vergrendeld"
+      },
+      "parking_brake": {
+        "name": "Parkeerrem"
+      },
+      "parking_light_left": {
+        "name": "Stadslicht links"
+      },
+      "parking_light_right": {
+        "name": "Stadslicht rechts"
+      },
+      "charge_mode_selection_options_immediate_charging": {
+        "name": "Direct laden"
+      },
+      "charge_mode_selection_options_immediate_discharging": {
+        "name": "Direct ontladen"
+      },
+      "charge_mode_selection_options_timer_charging": {
+        "name": "Timerladen"
+      },
+      "charge_mode_selection_options_timer_charging_climatization": {
+        "name": "Timerladen met klimaat"
+      },
+      "charge_mode_selection_options_home_storage_charging": {
+        "name": "Thuisopslag laden"
+      },
+      "charge_mode_selection_options_only_own_current": {
+        "name": "Alleen eigen stroom"
+      },
+      "charge_mode_selection_options_preferred_charging_times": {
+        "name": "Voorkeurslaadtijden"
+      },
+      "locked_state_front_left_door": {
+        "name": "Deurslot voor links"
+      },
+      "locked_state_front_right_door": {
+        "name": "Deurslot voor rechts"
+      },
+      "locked_state__rear_left_door": {
+        "name": "Deurslot achter links"
+      },
+      "locked_state_rear_right_door": {
+        "name": "Deurslot achter rechts"
+      },
+      "locked_state_tailgate": {
+        "name": "Achterklepvergrendeling"
+      },
+      "locked_state_front_engine_bonnet": {
+        "name": "Motorkapslot"
+      },
+      "open_state_front_left_door": {
+        "name": "Deur voor links"
+      },
+      "open_state_front_right_door": {
+        "name": "Deur voor rechts"
+      },
+      "open_state_rear_left_door": {
+        "name": "Deur achter links"
+      },
+      "open_state_rear_right_door": {
+        "name": "Deur achter rechts"
+      },
+      "open_state_tailgate": {
+        "name": "Achterklep"
+      },
+      "open_state_front_engine_bonnet": {
+        "name": "Motorkap"
+      },
+      "safe_state_front_right_door": {
+        "name": "Deur voor rechts veilig"
+      },
+      "safe_state_rear_left_door": {
+        "name": "Deur achter links veilig"
+      },
+      "safe_state_rear_right_door": {
+        "name": "Deur achter rechts veilig"
+      },
+      "safe_state_tailgate": {
+        "name": "Achterklep veilig"
+      },
+      "safe_state_front_engine_bonnet": {
+        "name": "Motorkap veilig"
+      },
+      "state_front_left_door_window_lifter": {
+        "name": "Raam voor links"
+      },
+      "state_front_right_door_window_lifter": {
+        "name": "Raam voor rechts"
+      },
+      "state_rear_left_door_window_lifter": {
+        "name": "Raam achter links"
+      },
+      "state_rear_right_door_window_lifter": {
+        "name": "Raam achter rechts"
+      },
+      "state_sunroof_motor_hood_1": {
+        "name": "Schuifdak"
+      },
+      "state_sunroof_motor_hood_3": {
+        "name": "Schuifdakmotor 3"
+      },
+      "parking_lights": {
+        "name": "Stadslichten"
+      },
+      "state_of_hood": {
+        "name": "Motorkapstatus"
+      },
+      "state_service_hatch": {
+        "name": "Serviceklep"
+      },
+      "state_spoiler": {
+        "name": "Spoiler"
       }
     }
   }

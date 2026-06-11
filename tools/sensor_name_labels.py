@@ -422,6 +422,30 @@ _BY_ENGLISH: dict[str, dict[str, str]] = {
         "it": "Indicatore asta olio",
         "nl": "Oliemeter-indicator",
     },
+    "Last charge": {
+        "de": "Letzte Ladung",
+        "fr": "Dernière charge",
+        "it": "Ultima carica",
+        "nl": "Laatste lading",
+    },
+    "Days until subscription expires": {
+        "de": "Tage bis Abo endet",
+        "fr": "Jours avant expiration de l'abonnement",
+        "it": "Giorni alla scadenza abbonamento",
+        "nl": "Dagen tot abonnement verloopt",
+    },
+    "Minutes since last snapshot": {
+        "de": "Minuten seit letztem Snapshot",
+        "fr": "Minutes depuis le dernier instantané",
+        "it": "Minuti dall'ultimo snapshot",
+        "nl": "Minuten sinds laatste snapshot",
+    },
+    "Uncurated fields": {
+        "de": "Nicht kuratierte Felder",
+        "fr": "Champs non traités",
+        "it": "Campi non curati",
+        "nl": "Niet-gecureerde velden",
+    },
 }
 
 # translation_key -> English name (all curated sensors)
@@ -502,6 +526,10 @@ _SENSOR_KEYS: dict[str, str] = {
     "oil_level_total_max": "Max oil level",
     "oil_level_dipstick_indicator_function": "Oil dipstick indicator",
     "mileage_timestamp": "Last connected",
+    "last_charge_kwh": "Last charge",
+    "days_until_subscription_expires": "Days until subscription expires",
+    "minutes_since_last_snapshot": "Minutes since last snapshot",
+    "uncurated_fields_count": "Uncurated fields",
 }
 
 

@@ -53,3 +53,8 @@ RETRY_INTERVAL = timedelta(minutes=1)
 MIN_INTERVAL = timedelta(seconds=30)
 
 NO_CONTENT_SUFFIX = "_no_content_found.zip"
+
+# --- Subscription / snapshot health (A3, B11) ----------------------------
+SUBSCRIPTION_VALIDITY = timedelta(days=365)
+SUBSCRIPTION_WARNING_BEFORE = timedelta(days=30)
+SNAPSHOT_STALE_THRESHOLD = timedelta(hours=12)

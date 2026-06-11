@@ -1,0 +1,142 @@
+"""Subscription health, snapshot age, and uncurated-field diagnostic tests."""
+
+from __future__ import annotations
+
+import json
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from unittest.mock import MagicMock
+
+from homeassistant.helpers import issue_registry as ir
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.cupra_eu_data_act.const import (
+    CONF_IDENTIFIER,
+    CONF_VIN,
+    DOMAIN,
+    NO_CONTENT_SUFFIX,
+    SNAPSHOT_STALE_THRESHOLD,
+    SUBSCRIPTION_VALIDITY,
+)
+from custom_components.cupra_eu_data_act.coordinator import EudaCoordinator
+from custom_components.cupra_eu_data_act.data import Dataset
+from custom_components.cupra_eu_data_act.issues import async_update_issues
+from custom_components.cupra_eu_data_act.sensor import (
+    EudaDaysUntilSubscriptionExpiresSensor,
+    EudaMinutesSinceLastSnapshotSensor,
+    EudaUncuratedFieldsCountSensor,
+)
+
+_FIXTURE = Path(__file__).parent / "fixtures" / "sample_dataset.json"
+
+
+def _make_entry(hass) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_VIN: "WVWZZZTESTVIN0001", CONF_IDENTIFIER: "ident-1"},
+        unique_id="WVWZZZTESTVIN0001",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _make_coordinator(hass, client=None) -> EudaCoordinator:
+    entry = _make_entry(hass)
+    return EudaCoordinator(hass, entry, client or MagicMock())
+
+
+def test_listing_metadata_tracks_subscription_and_content(hass) -> None:
+    coordinator = _make_coordinator(hass)
+    listing = [
+        {
+            "name": f"WVWZZZTESTVIN0001_20250101000000{NO_CONTENT_SUFFIX}",
+            "createdOn": "2025-01-01T00:00:00Z",
+        },
+        {
+            "name": "WVWZZZTESTVIN0001_20250601000000.zip",
+            "createdOn": "2025-06-01T00:00:00Z",
+        },
+    ]
+    coordinator._update_listing_metadata(listing)
+
+    assert coordinator.listing_identifier == "ident-1"
+    assert coordinator.subscription_created_on == datetime(
+        2025, 1, 1, tzinfo=timezone.utc
+    )
+    assert coordinator.last_listing_content_at == datetime(
+        2025, 6, 1, tzinfo=timezone.utc
+    )
+
+
+def test_days_until_subscription_expires(hass, monkeypatch) -> None:
+    coordinator = _make_coordinator(hass)
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    monkeypatch.setattr(dt_util, "utcnow", lambda: now)
+    coordinator.subscription_created_on = now - SUBSCRIPTION_VALIDITY + timedelta(days=10)
+
+    assert coordinator.days_until_subscription_expires == 10
+
+
+def test_minutes_since_last_snapshot_prefers_car_captured_time(hass, monkeypatch) -> None:
+    coordinator = _make_coordinator(hass)
+    payload = json.loads(_FIXTURE.read_text())
+    coordinator.latest_dataset = Dataset.from_json(payload)
+    coordinator.data = coordinator.latest_dataset.points
+    now = datetime(2026, 5, 29, 23, 59, 27, tzinfo=timezone.utc)
+    monkeypatch.setattr(dt_util, "utcnow", lambda: now)
+
+    assert coordinator.minutes_since_last_snapshot == 60
+
+
+async def test_subscription_expiring_issue(hass, monkeypatch) -> None:
+    entry = _make_entry(hass)
+    coordinator = EudaCoordinator(hass, entry, MagicMock())
+    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    monkeypatch.setattr(dt_util, "utcnow", lambda: now)
+    coordinator.subscription_created_on = now - SUBSCRIPTION_VALIDITY + timedelta(days=20)
+
+    async_update_issues(hass, entry, coordinator)
+
+    issue = ir.async_get(hass).async_get_issue(
+        DOMAIN, f"{entry.entry_id}_subscription_expiring_soon"
+    )
+    assert issue is not None
+    assert issue.severity == ir.IssueSeverity.WARNING
+
+
+async def test_stale_snapshot_issue_and_clear(hass, monkeypatch) -> None:
+    entry = _make_entry(hass)
+    coordinator = EudaCoordinator(hass, entry, MagicMock())
+    now = datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc)
+    monkeypatch.setattr(dt_util, "utcnow", lambda: now)
+    coordinator.last_listing_content_at = now - SNAPSHOT_STALE_THRESHOLD - timedelta(
+        hours=1
+    )
+    coordinator.status_label = "ok"
+
+    async_update_issues(hass, entry, coordinator)
+    issue_id = f"{entry.entry_id}_stale_snapshot"
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is not None
+
+    coordinator.last_listing_content_at = now
+    async_update_issues(hass, entry, coordinator)
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
+def test_health_sensor_values(hass, monkeypatch) -> None:
+    coordinator = _make_coordinator(hass)
+    payload = json.loads(_FIXTURE.read_text())
+    coordinator.latest_dataset = Dataset.from_json(payload)
+    coordinator.data = coordinator.latest_dataset.points
+    coordinator.subscription_created_on = datetime(2025, 6, 1, tzinfo=timezone.utc)
+    now = datetime(2026, 5, 29, 23, 59, 27, tzinfo=timezone.utc)
+    monkeypatch.setattr(dt_util, "utcnow", lambda: now)
+
+    days_sensor = EudaDaysUntilSubscriptionExpiresSensor(coordinator)
+    minutes_sensor = EudaMinutesSinceLastSnapshotSensor(coordinator)
+    uncurated_sensor = EudaUncuratedFieldsCountSensor(coordinator)
+
+    assert days_sensor.native_value is not None
+    assert minutes_sensor.native_value == 60
+    assert uncurated_sensor.native_value == 2  # report_type + range.unit

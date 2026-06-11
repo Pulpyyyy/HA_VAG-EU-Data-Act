@@ -86,6 +86,32 @@ python3 -m venv .venv && .venv/bin/pip install aiohttp
 
 Full tester guide: [TESTING.md](TESTING.md)
 
+## Energy dashboard helpers
+
+For Home Assistant Energy dashboard, use the cumulative charged-energy sensor
+from this integration (it has `device_class: energy` and
+`state_class: total_increasing`):
+
+- ID.x / dotted datasets: `sensor.<vehicle>_charged_energy`
+- Flat datasets (older portal layout): `sensor.<vehicle>_total_energy_charged`
+
+The integration also auto-creates monthly `utility_meter` helpers (if missing)
+for:
+
+- monthly charged energy (kWh)
+- monthly mileage (km/mi, based on your vehicle unit)
+- monthly electric consumption (optional; only when a curated source exists)
+
+Additionally, `sensor.<vehicle>_last_charge` exposes the last observed charging
+delta in kWh, derived from cumulative charged-energy updates.
+
+## Lovelace / Dashboard
+
+Entity IDs vary by device nickname, HA language, and dataset format — this
+integration does not ship copy-paste dashboard YAML. See
+[`dashboards/README.md`](dashboards/README.md) for which entities are worth
+adding to your own dashboard (UI entity picker or Mushroom Cards via HACS).
+
 ## Limitations
 
 - Read-only, ~15 min latency, portal-dependent delivery

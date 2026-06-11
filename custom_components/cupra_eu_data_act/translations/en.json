@@ -80,6 +80,14 @@
     "empty_snapshots": {
       "title": "Only empty snapshots for {vehicle}",
       "description": "The portal subscription is active but only empty snapshots have been received so far ({empty_count} × _no_content_found). Wake the car (drive, ignition, or mobile app) so it can upload telemetry.\n\nHome Assistant retries every {retry_minutes} minute(s). Portal: {portal_url}"
+    },
+    "subscription_expiring_soon": {
+      "title": "Portal subscription expiring soon for {vehicle}",
+      "description": "The EU Data Act portal subscription is estimated to expire in {days_until} day(s). Continuous data requests must be renewed on the portal or datasets will stop arriving.\n\nOpen the portal ({portal_url}) and renew the subscription before it lapses."
+    },
+    "stale_snapshot": {
+      "title": "No recent vehicle data for {vehicle}",
+      "description": "The last real vehicle snapshot is about {hours_since} hour(s) old ({minutes_since} minutes). The car may be offline or the portal may not be delivering new datasets.\n\nWake the car (drive, ignition, or mobile app) and confirm the continuous request is active on the portal ({portal_url})."
     }
   },
   "entity": {
@@ -317,6 +325,18 @@
       "mileage_timestamp": {
         "name": "Last connected"
       },
+      "last_charge_kwh": {
+        "name": "Last charge"
+      },
+      "days_until_subscription_expires": {
+        "name": "Days until subscription expires"
+      },
+      "minutes_since_last_snapshot": {
+        "name": "Minutes since last snapshot"
+      },
+      "uncurated_fields_count": {
+        "name": "Uncurated fields"
+      },
       "integration_status": {
         "name": "Integration status",
         "state": {
@@ -434,6 +454,122 @@
           "WINDOW_HEATING_STATE_OFF": "Off",
           "WINDOW_HEATING_STATE_ON": "On"
         }
+      }
+    },
+    "binary_sensor": {
+      "locked": {
+        "name": "Vehicle locked"
+      },
+      "parking_brake": {
+        "name": "Parking brake"
+      },
+      "parking_light_left": {
+        "name": "Parking light left"
+      },
+      "parking_light_right": {
+        "name": "Parking light right"
+      },
+      "charge_mode_selection_options_immediate_charging": {
+        "name": "Immediate charging"
+      },
+      "charge_mode_selection_options_immediate_discharging": {
+        "name": "Immediate discharging"
+      },
+      "charge_mode_selection_options_timer_charging": {
+        "name": "Timer charging"
+      },
+      "charge_mode_selection_options_timer_charging_climatization": {
+        "name": "Timer charging climatization"
+      },
+      "charge_mode_selection_options_home_storage_charging": {
+        "name": "Home storage charging"
+      },
+      "charge_mode_selection_options_only_own_current": {
+        "name": "Only own current"
+      },
+      "charge_mode_selection_options_preferred_charging_times": {
+        "name": "Preferred charging times"
+      },
+      "locked_state_front_left_door": {
+        "name": "Front left door lock"
+      },
+      "locked_state_front_right_door": {
+        "name": "Front right door lock"
+      },
+      "locked_state__rear_left_door": {
+        "name": "Rear left door lock"
+      },
+      "locked_state_rear_right_door": {
+        "name": "Rear right door lock"
+      },
+      "locked_state_tailgate": {
+        "name": "Tailgate lock"
+      },
+      "locked_state_front_engine_bonnet": {
+        "name": "Hood lock"
+      },
+      "open_state_front_left_door": {
+        "name": "Front left door"
+      },
+      "open_state_front_right_door": {
+        "name": "Front right door"
+      },
+      "open_state_rear_left_door": {
+        "name": "Rear left door"
+      },
+      "open_state_rear_right_door": {
+        "name": "Rear right door"
+      },
+      "open_state_tailgate": {
+        "name": "Tailgate"
+      },
+      "open_state_front_engine_bonnet": {
+        "name": "Hood"
+      },
+      "safe_state_front_right_door": {
+        "name": "Front right door safe"
+      },
+      "safe_state_rear_left_door": {
+        "name": "Rear left door safe"
+      },
+      "safe_state_rear_right_door": {
+        "name": "Rear right door safe"
+      },
+      "safe_state_tailgate": {
+        "name": "Tailgate safe"
+      },
+      "safe_state_front_engine_bonnet": {
+        "name": "Hood safe"
+      },
+      "state_front_left_door_window_lifter": {
+        "name": "Front left window"
+      },
+      "state_front_right_door_window_lifter": {
+        "name": "Front right window"
+      },
+      "state_rear_left_door_window_lifter": {
+        "name": "Rear left window"
+      },
+      "state_rear_right_door_window_lifter": {
+        "name": "Rear right window"
+      },
+      "state_sunroof_motor_hood_1": {
+        "name": "Sunroof"
+      },
+      "state_sunroof_motor_hood_3": {
+        "name": "Sunroof motor 3"
+      },
+      "parking_lights": {
+        "name": "Parking lights"
+      },
+      "state_of_hood": {
+        "name": "Hood state"
+      },
+      "state_service_hatch": {
+        "name": "Service hatch"
+      },
+      "state_spoiler": {
+        "name": "Spoiler"
       }
     }
   }

@@ -568,7 +568,8 @@ FIELD_TRANSLATION_KEYS: dict[str, str] = {
 
 
 def build_entity_block(lang: str) -> dict:
-    """Build the HA ``entity.sensor`` translation block for one language."""
+    """Build HA ``entity.sensor`` and ``entity.binary_sensor`` blocks for one language."""
+    from binary_name_labels import NAME_LABELS as BINARY_NAME_LABELS
     from sensor_name_labels import NAME_LABELS
 
     sensors: dict[str, dict] = {}
@@ -581,4 +582,9 @@ def build_entity_block(lang: str) -> dict:
                 state_key: labels[lang] for state_key, labels in spec["states"].items()
             }
         sensors[key] = entry
-    return {"sensor": sensors}
+
+    binary_sensors: dict[str, dict] = {}
+    for key, spec in BINARY_NAME_LABELS.items():
+        binary_sensors[key] = {"name": spec["names"][lang]}
+
+    return {"sensor": sensors, "binary_sensor": binary_sensors}

@@ -6,7 +6,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
 
-from .const import BASE_URL, CONF_NICKNAME, DOMAIN, RETRY_INTERVAL
+from .const import (
+    BASE_URL,
+    CONF_NICKNAME,
+    DOMAIN,
+    RETRY_INTERVAL,
+    SNAPSHOT_STALE_THRESHOLD,
+    SUBSCRIPTION_WARNING_BEFORE,
+)
 from .coordinator import EudaCoordinator
 
 # Status labels that should surface a repairs issue (see coordinator.status_label).
@@ -17,6 +24,15 @@ _ISSUE_STATUSES: frozenset[str] = frozenset(
         "empty_snapshots",
     }
 )
+
+_HEALTH_ISSUE_KEYS: frozenset[str] = frozenset(
+    {
+        "subscription_expiring_soon",
+        "stale_snapshot",
+    }
+)
+
+_ALL_ISSUE_KEYS: frozenset[str] = _ISSUE_STATUSES | _HEALTH_ISSUE_KEYS
 
 _RETRY_MINUTES = str(int(RETRY_INTERVAL.total_seconds() // 60))
 
@@ -66,9 +82,69 @@ def async_update_issues(
             translation_placeholders=placeholders,
         )
 
+    _async_update_health_issues(hass, entry, coordinator, vehicle)
+
+
+@callback
+def _async_update_health_issues(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    coordinator: EudaCoordinator,
+    vehicle: str,
+) -> None:
+    """Create or clear subscription-expiry and stale-snapshot health issues."""
+    days_until = coordinator.days_until_subscription_expires
+    sub_issue_id = _issue_id(entry.entry_id, "subscription_expiring_soon")
+    if (
+        days_until is not None
+        and days_until <= SUBSCRIPTION_WARNING_BEFORE.days
+    ):
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            sub_issue_id,
+            data={"entry_id": entry.entry_id},
+            is_fixable=False,
+            issue_domain=DOMAIN,
+            learn_more_url=BASE_URL,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="subscription_expiring_soon",
+            translation_placeholders={
+                "portal_url": BASE_URL,
+                "vehicle": vehicle,
+                "days_until": str(days_until),
+            },
+        )
+    else:
+        ir.async_delete_issue(hass, DOMAIN, sub_issue_id)
+
+    minutes_since = coordinator.minutes_since_last_snapshot
+    stale_issue_id = _issue_id(entry.entry_id, "stale_snapshot")
+    stale_minutes = int(SNAPSHOT_STALE_THRESHOLD.total_seconds() // 60)
+    if minutes_since is not None and minutes_since > stale_minutes:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            stale_issue_id,
+            data={"entry_id": entry.entry_id},
+            is_fixable=False,
+            issue_domain=DOMAIN,
+            learn_more_url=BASE_URL,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="stale_snapshot",
+            translation_placeholders={
+                "portal_url": BASE_URL,
+                "vehicle": vehicle,
+                "hours_since": str(minutes_since // 60),
+                "minutes_since": str(minutes_since),
+            },
+        )
+    else:
+        ir.async_delete_issue(hass, DOMAIN, stale_issue_id)
+
 
 @callback
 def async_clear_issues(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Remove all portal-state issues when the config entry is unloaded."""
-    for status in _ISSUE_STATUSES:
+    for status in _ALL_ISSUE_KEYS:
         ir.async_delete_issue(hass, DOMAIN, _issue_id(entry.entry_id, status))
