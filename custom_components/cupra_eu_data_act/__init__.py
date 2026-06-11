@@ -23,8 +23,23 @@ from .const import (
 )
 from .coordinator import EudaCoordinator
 from .data import load_dictionary
+from .entity_migration import async_migrate_entity_translations
+from .issues import async_clear_issues, async_update_issues
+from .services import async_setup_services, async_unload_services
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.BUTTON]
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up the integration (services)."""
+    async_setup_services(hass)
+    return True
+
+
+async def async_unload(hass: HomeAssistant) -> bool:
+    """Unload the integration."""
+    async_unload_services(hass)
+    return True
 
 
 @dataclass
@@ -76,6 +91,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: EudaConfigEntry) -> bool
 
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+        # After platforms register entities, patch registry so translated names
+        # resolve (existing entries created before v0.5.3 lack translation_key).
+        await async_migrate_entity_translations(hass, entry)
+
+        @callback
+        def _on_coordinator_update() -> None:
+            async_update_issues(hass, entry, coordinator)
+
+        entry.async_on_unload(coordinator.async_add_listener(_on_coordinator_update))
+        _on_coordinator_update()
+
         # Kick off the first refresh after platform setup so the discovery
         # listeners are already wired up when data arrives. Failures are not
         # propagated to async_setup_entry — they are surfaced via the status
@@ -118,6 +144,8 @@ async def _async_migrate_raw_unique_ids(hass: HomeAssistant, entry: EudaConfigEn
 async def async_unload_entry(hass: HomeAssistant, entry: EudaConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok and entry.runtime_data:
-        await entry.runtime_data.session.close()
+    if unload_ok:
+        async_clear_issues(hass, entry)
+        if entry.runtime_data:
+            await entry.runtime_data.session.close()
     return unload_ok

@@ -22,6 +22,7 @@ from .data import (
     UNIT_RESOLVERS,
     CuratedSensor,
     DataPoint,
+    curated_translation_key,
     detect_dataset_format,
     find_by_field,
     friendly_name,
@@ -106,7 +107,9 @@ class EudaCuratedSensor(EudaEntity, SensorEntity):
         super().__init__(coordinator)
         self._curated = curated
         self._attr_unique_id = f"{coordinator.vin}_{curated.field_name}"
-        self._attr_name = curated.name
+        self._attr_translation_key = curated_translation_key(
+            curated.field_name, curated.translation_key
+        )
         if curated.icon:
             self._attr_icon = curated.icon
         if curated.device_class:
@@ -192,6 +195,12 @@ class EudaCuratedSensor(EudaEntity, SensorEntity):
                 transformed = deci_kwh_to_kwh(raw_value)
                 return self._sticky(transformed)
 
+            elif self._curated.transform == "iso_timestamp":
+                from .data import parse_timestamp
+
+                transformed = parse_timestamp(raw_value)
+                return self._sticky(transformed)
+
         return self._sticky(raw_value)
 
     @property
@@ -262,11 +271,11 @@ class EudaStatusSensor(EudaEntity, SensorEntity):
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:cloud-sync-outline"
+    _attr_translation_key = "integration_status"
 
     def __init__(self, coordinator: EudaCoordinator) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.vin}_integration_status"
-        self._attr_name = "Integration status"
 
     @property
     def available(self) -> bool:

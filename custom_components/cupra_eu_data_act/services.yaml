@@ -1,0 +1,8 @@
+refresh_now:
+  fields:
+    config_entry:
+      required: false
+      example: 01KTSJ25DY2Z6AKRDTBJ3ZXFP8
+      selector:
+        config_entry:
+          integration: cupra_eu_data_act

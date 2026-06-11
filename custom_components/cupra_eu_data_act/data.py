@@ -266,9 +266,13 @@ def find_by_field(
     return min(matches, key=lambda dp: dp.key) if matches else None
 
 
-def _parse_timestamp(raw: str) -> datetime | None:
-    """Parse the various timestamp encodings seen in datasets."""
-    s = (raw or "").strip()
+def parse_timestamp(raw) -> datetime | None:
+    """Parse ISO / epoch-millis timestamp strings from portal value fields."""
+    if raw is None:
+        return None
+    if isinstance(raw, datetime):
+        return raw
+    s = str(raw).strip()
     if not s:
         return None
     # epoch millis
@@ -281,6 +285,9 @@ def _parse_timestamp(raw: str) -> datetime | None:
         return datetime.fromisoformat(s.replace("Z", "+00:00"))
     except ValueError:
         return None
+
+
+_parse_timestamp = parse_timestamp  # internal alias
 
 
 # ---------------------------------------------------------------------------
@@ -468,6 +475,15 @@ class CuratedSensor:
     unit_resolver: str = "distance"
     # number of decimal places to show (None = auto)
     suggested_display_precision: int | None = None
+    # HA entity translation key (name + enum state labels in translations/*.json)
+    translation_key: str | None = None
+
+
+def curated_translation_key(field_name: str, translation_key: str | None = None) -> str:
+    """Stable HA translation key for a curated sensor field."""
+    if translation_key:
+        return translation_key
+    return field_name.replace(".", "_")
 
 
 @dataclass(frozen=True)
@@ -589,7 +605,7 @@ CURATED_SENSORS_DOTTED: tuple[CuratedSensor, ...] = (
     CuratedSensor(
         "energy_contents.current_energy_content.physical_value",
         "Battery energy",
-        "energy",
+        None,
         "kWh",
         "measurement",
         transform="deci_kwh",
@@ -598,7 +614,7 @@ CURATED_SENSORS_DOTTED: tuple[CuratedSensor, ...] = (
     CuratedSensor(
         "energy_contents.maximal_energy_content.physical_value",
         "Battery capacity",
-        "energy",
+        None,
         "kWh",
         "measurement",
         transform="deci_kwh",
@@ -730,47 +746,90 @@ CURATED_SENSORS_DOTTED: tuple[CuratedSensor, ...] = (
         None,
         icon="mdi:clock",
     ),
+    CuratedSensor(
+        "car_captured_time",
+        "Last telemetry",
+        "timestamp",
+        None,
+        None,
+        transform="iso_timestamp",
+        icon="mdi:cloud-sync-outline",
+    ),
+    CuratedSensor(
+        "instrument_cluster_time",
+        "Vehicle clock",
+        "timestamp",
+        None,
+        None,
+        transform="iso_timestamp",
+        icon="mdi:car-clock",
+    ),
     # === Enum/Status Sensors ===
     CuratedSensor(
         "charging_state_report.current_charge_state",
         "Charge state",
         icon="mdi:ev-station",
+        translation_key="charge_state",
     ),
     CuratedSensor(
-        "charging_state_report.charge_mode", "Charge mode", icon="mdi:ev-station"
+        "charging_state_report.charge_mode",
+        "Charge mode",
+        icon="mdi:ev-station",
+        translation_key="charge_mode",
     ),
     CuratedSensor(
-        "charging_state_report.charge_type", "Charge type", icon="mdi:power-plug"
+        "charging_state_report.charge_type",
+        "Charge type",
+        icon="mdi:power-plug",
+        translation_key="charge_type",
     ),
     CuratedSensor(
         "charging_state_report.charging_scenario",
         "Charging scenario",
         icon="mdi:ev-station",
+        translation_key="charging_scenario",
     ),
     CuratedSensor(
         "charging_state_report.immediate_action_state",
         "Charging action state",
         icon="mdi:ev-station",
+        translation_key="immediate_action_state",
     ),
     CuratedSensor(
-        "settings.charge_mode_selection", "Charge mode selection", icon="mdi:cog"
+        "settings.charge_mode_selection",
+        "Charge mode selection",
+        icon="mdi:cog",
+        translation_key="charge_mode_selection",
     ),
     CuratedSensor(
-        "settings.max_charge_current_ac", "Max AC charge current", icon="mdi:current-ac"
+        "settings.max_charge_current_ac",
+        "Max AC charge current",
+        icon="mdi:current-ac",
+        translation_key="max_ac_charge_current",
     ),
     CuratedSensor(
-        "settings.auto_unlock_ac", "Auto unlock AC", icon="mdi:lock-open"
+        "settings.auto_unlock_ac",
+        "Auto unlock AC",
+        icon="mdi:lock-open",
+        translation_key="auto_unlock_ac",
     ),
     CuratedSensor(
-        "setting.bcam_activation", "BCAM activation", icon="mdi:battery-heart"
+        "setting.bcam_activation",
+        "BCAM activation",
+        icon="mdi:battery-heart",
+        translation_key="bcam_activation",
     ),
     CuratedSensor(
         "profile_state_report.next_charging_timer_information.target_reachability",
         "Charging timer reachability",
         icon="mdi:timer-outline",
+        translation_key="charging_timer_reachability",
     ),
     CuratedSensor(
-        "window_heating_state", "Window heating", icon="mdi:car-defrost-rear"
+        "window_heating_state",
+        "Window heating",
+        icon="mdi:car-defrost-rear",
+        translation_key="window_heating_state",
     ),
     CuratedSensor("bem_level", "BEM level", None, None, None, icon="mdi:information"),
 )
@@ -923,6 +982,15 @@ CURATED_SENSORS_FLAT: tuple[CuratedSensor, ...] = (
         "min",
         "measurement",
         icon="mdi:battery-clock",
+    ),
+    CuratedSensor(
+        "charged_energy",
+        "Total energy charged",
+        "energy",
+        "kWh",
+        "total_increasing",
+        transform="deci_kwh",
+        icon="mdi:lightning-bolt-circle",
     ),
     # === Fuel ===
     CuratedSensor(
@@ -1281,7 +1349,10 @@ CURATED_SENSORS_FLAT: tuple[CuratedSensor, ...] = (
     ),
     # === Enum/Status Sensors ===
     CuratedSensor(
-        "window_heating_state", "Window heating", icon="mdi:car-defrost-rear"
+        "window_heating_state",
+        "Window heating",
+        icon="mdi:car-defrost-rear",
+        translation_key="window_heating_state",
     ),
     CuratedSensor("bem_level", "BEM level", None, None, None, icon="mdi:information"),
 )
@@ -1448,3 +1519,17 @@ CURATED_FIELDS: frozenset[str] = frozenset(
     + [b.field_name for b in CURATED_BINARY_DOTTED]
     + [b.field_name for b in CURATED_BINARY_FLAT]
 )
+
+
+def field_coverage(points: dict[str, DataPoint]) -> dict[str, object]:
+    """Summarise which dataset fields are curated vs exposed only as raw diagnostics."""
+    present = {dp.field_name for dp in points.values()}
+    curated = sorted(present & CURATED_FIELDS)
+    uncurated = sorted(present - CURATED_FIELDS)
+    return {
+        "field_count": len(present),
+        "curated_count": len(curated),
+        "uncurated_count": len(uncurated),
+        "curated_fields": curated,
+        "uncurated_fields": uncurated,
+    }

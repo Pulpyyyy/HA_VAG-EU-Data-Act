@@ -1,5 +1,178 @@
 # Release notes
 
+## v0.6.2 — Service schema compatibility fix (2026-06-11)
+
+### Summary
+
+Fixes a startup crash on Home Assistant versions that do not provide
+`cv.config_entry_id`. The integration failed to import and could prevent
+Home Assistant from starting when the custom component was installed.
+
+### Fix
+
+`cupra_eu_data_act.refresh_now` now validates the optional vehicle selector
+with `cv.string`; the config entry is resolved and checked at runtime.
+
+---
+
+## v0.6.1 — Refresh button on device (2026-06-11)
+
+### Summary
+
+Adds a native **Button** entity on each vehicle device so users can trigger a
+portal fetch from the device page — no need to open Developer Tools.
+
+### New entity
+
+| Entity | Action |
+|--------|--------|
+| **Refresh now** (`button.*`) | Queries the EU Data Act portal immediately |
+
+Localized in de / en / fr / it / nl. Always available, even before the first
+dataset arrives. Reload the integration once after updating to register the
+new platform.
+
+---
+
+## v0.6.0 — Manual refresh service (2026-06-11)
+
+### Summary
+
+New service to poll the portal on demand instead of waiting for the next
+scheduled coordinator interval (~15 minutes after the last snapshot).
+
+### Service
+
+`cupra_eu_data_act.refresh_now`
+
+- Optional `config_entry` field to target one vehicle; omit to refresh all.
+- Also callable with a device target in automations.
+- Waits until the fetch completes (`async_refresh`).
+
+---
+
+## v0.5.5 — Entity registry migration import fix (2026-06-11)
+
+### Summary
+
+Fixes a circular import that prevented the integration from loading after
+v0.5.4 (`entity_migration` imported `EudaConfigEntry` from `__init__.py`).
+
+### Fix
+
+`entity_migration.py` now uses `ConfigEntry` from Home Assistant directly,
+matching `issues.py` and `diagnostics.py`.
+
+---
+
+## v0.5.4 — Curated sensor name display fix (2026-06-11)
+
+### Summary
+
+Fixes all curated sensors showing only the device nickname (e.g.
+`All_Data_Cupra`) instead of translated names like **Battery** / **Batterie**.
+
+### Cause & fix
+
+Setting `_attr_name = None` tells Home Assistant to use the **device name only**
+and skips `translation_key` lookup. Removed explicit `_attr_name = None` on
+curated sensors; names now come from entity translations.
+
+### Entity registry migration
+
+Existing installations get `translation_key` and cleared custom names via
+`entity_migration.py` on setup.
+
+---
+
+## v0.5.3 — All curated sensor names localized (2026-06-11)
+
+### Summary
+
+Every curated sensor now uses HA entity translations for its **name** in
+de / en / fr / it / nl (88 translation keys covering all dotted and flat
+curated fields). Enum sensors keep their localized state labels from v0.5.2.
+
+Translation keys are derived automatically from the field name
+(`mileage.value` → `mileage_value`) unless a shorter key is set explicitly
+(e.g. `charge_state`).
+
+Catalog: `tools/sensor_name_labels.py` — verify with
+`python tools/verify_sensor_translations.py`, regenerate JSON with
+`python tools/build_entity_translations.py`.
+
+---
+
+## v0.5.2 — Multilingual enum labels (2026-06-11)
+
+### Summary
+
+Enum and status sensors now use Home Assistant entity translations instead of
+raw `SCREAMING_SNAKE_CASE` portal strings — shorter, localized labels in the
+entity list (de / en / fr / it / nl).
+
+### Translated sensors
+
+Charge state, charge mode, charge type, charging scenario, immediate action
+state, charge mode selection, max AC current, auto unlock AC, BCAM activation,
+charging timer reachability, window heating, and integration status.
+
+Catalog: `tools/entity_translation_catalog.py` — regenerate JSON with
+`python tools/build_entity_translations.py`.
+
+---
+
+## v0.5.1 — Telemetry timestamps (2026-06-11)
+
+### Summary
+
+Curated timestamp sensors for portal capture time and the vehicle's
+instrument-cluster clock — more reliable "when was the car last online" than
+derived mileage timestamps.
+
+### New sensors (dotted / ID.x format)
+
+| Field | Entity | Notes |
+|-------|--------|-------|
+| `car_captured_time` | Last telemetry | ISO timestamp from the portal snapshot |
+| `instrument_cluster_time` | Vehicle clock | Car-local time used for charging timers |
+
+Values are parsed via new `iso_timestamp` transform (`parse_timestamp` in
+`data.py`).
+
+---
+
+## v0.5.0 — Energy dashboard, Repairs & Diagnostics (2026-06-11)
+
+### Summary
+
+Fixes invalid energy sensor metadata so cumulative charging kWh can appear in
+Home Assistant's Energy dashboard, surfaces portal delivery problems in the
+native Repairs center, and adds a redacted diagnostics download for support.
+
+### Energy dashboard compatibility
+Sensors with `device_class: energy` must use `state_class: total_increasing`
+(or `total`), not `measurement`. Battery level/capacity sensors
+(`energy_contents.*`) no longer claim the `energy` device class — they report
+instantaneous kWh content, not cumulative consumption.
+
+Added curated flat-format sensor **`charged_energy`** (total energy charged,
+`deci_kwh` transform, `total_increasing`) for PHEV/hybrid vehicles that expose
+lifetime charging totals.
+
+### Repairs issues for portal states
+When the integration status is `delivery_not_ready`, `waiting_for_portal_data`,
+or `empty_snapshots`, a clickable issue now appears under **Settings → Repairs**
+with a link to the EU Data Act portal and setup guidance. Issues clear
+automatically when data delivery succeeds.
+
+### Diagnostics download
+**Download diagnostics** on the config entry returns redacted JSON with
+integration version, status, field coverage (curated vs uncurated), and latest
+dataset metadata — no email, password, or VIN.
+
+---
+
 ## v0.4.1 — Reauth flow, robust API errors, binary refactor (2026-06-11)
 
 ### Summary

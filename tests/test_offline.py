@@ -68,6 +68,14 @@ def main() -> int:
     check("remaining_climate_time", _field_val(ds, "remaining_climate_time"), 0.0)
     check("range", _field_val(ds, "range.value"), 312)
     check("captured_at present", ds.captured_at is not None, True)
+    ict = data.parse_timestamp(_field_val(ds, "instrument_cluster_time"))
+    check("instrument_cluster_time parses", ict is not None and ict.year == 2026, True)
+
+    # --- timestamp parsing ------------------------------------------------
+    print("timestamp parsing:")
+    cct = data.parse_timestamp("2026-05-29T22:59:27Z")
+    check("iso Z", cct is not None and cct.tzinfo is not None, True)
+    check("iso offset", data.parse_timestamp("2026-05-29T22:59:27+02:00") is not None, True)
 
     # --- duplicate field: deterministic selection regardless of order -----
     print("duplicate field selection:")
@@ -103,12 +111,61 @@ def main() -> int:
         "long_term_data_average_electr_engine_consumption" in data.CURATED_FIELDS,
         True,
     )
+    check(
+        "flat charged_energy curated",
+        "charged_energy" in data.CURATED_FIELDS,
+        True,
+    )
+    check(
+        "car_captured_time curated",
+        "car_captured_time" in data.CURATED_FIELDS,
+        True,
+    )
+    check(
+        "instrument_cluster_time curated",
+        "instrument_cluster_time" in data.CURATED_FIELDS,
+        True,
+    )
+    _charge_state = next(
+        s
+        for s in data.CURATED_SENSORS_DOTTED
+        if s.field_name == "charging_state_report.current_charge_state"
+    )
+    check("charge_state has translation_key", _charge_state.translation_key, "charge_state")
+    check(
+        "curated_translation_key derived",
+        data.curated_translation_key("mileage.value"),
+        "mileage_value",
+    )
+    check(
+        "curated_translation_key keeps short key",
+        data.curated_translation_key(
+            "charging_state_report.current_charge_state", "charge_state"
+        ),
+        "charge_state",
+    )
+    _charged = next(s for s in data.CURATED_SENSORS_FLAT if s.field_name == "charged_energy")
+    check("charged_energy total_increasing", _charged.state_class, "total_increasing")
+    check("charged_energy device_class energy", _charged.device_class, "energy")
+    _batt_energy = next(
+        s
+        for s in data.CURATED_SENSORS_DOTTED
+        if s.field_name == "energy_contents.current_energy_content.physical_value"
+    )
+    check(
+        "battery energy no invalid energy+measurement",
+        _batt_energy.device_class is None and _batt_energy.state_class == "measurement",
+        True,
+    )
     _mintemp = next(s for s in data.CURATED_SENSORS_DOTTED if s.field_name == "min_temperature")
     check("min_temperature named battery", _mintemp.name, "Battery min temperature")
     format_type = data.detect_dataset_format(ds.points)
     check("fixture format dotted", format_type, "dotted")
     curated_present = {dp.field_name for dp in ds.points.values()} & data.CURATED_FIELDS
     check("fixture has curated fields", len(curated_present) >= 5, True)
+    coverage = data.field_coverage(ds.points)
+    check("field_coverage counts", coverage["field_count"] == len(ds.points), True)
+    check("field_coverage curated subset", coverage["curated_count"] == len(curated_present), True)
 
     # --- consumption transforms ------------------------------------------
     print("consumption transforms:")

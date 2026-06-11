@@ -45,6 +45,396 @@
     },
     "delivery_not_ready": {
       "message": "Accesso riuscito — la consegna dei dati non è ancora pronta (HTTP 400). Se hai appena creato la richiesta continua di 15 minuti sul portale ({portal_url}), il backend può impiegare alcune ore prima di iniziare a consegnare file ZIP.\n\nHome Assistant riprova ogni {retry_minutes} minuto/i. Non è un problema di credenziali."
+    },
+    "config_entry_not_found": {
+      "message": "Nessuna voce VW Group EU Data Act corrisponde al veicolo selezionato."
+    },
+    "no_config_entries": {
+      "message": "Nessun veicolo VW Group EU Data Act è configurato."
+    },
+    "no_loaded_entries": {
+      "message": "L'integrazione del veicolo selezionato non è caricata."
+    }
+  },
+  "services": {
+    "refresh_now": {
+      "name": "Aggiorna ora",
+      "description": "Interroga subito il portale EU Data Act per un nuovo dataset, senza attendere il prossimo ciclo pianificato.",
+      "fields": {
+        "config_entry": {
+          "name": "Veicolo",
+          "description": "Veicolo da aggiornare. Lasciare vuoto per aggiornare tutti i veicoli configurati."
+        }
+      }
+    }
+  },
+  "issues": {
+    "delivery_not_ready": {
+      "title": "Consegna dati non ancora pronta per {vehicle}",
+      "description": "Il portale EU Data Act non ha ancora iniziato a consegnare dataset per questo veicolo (HTTP 400). Se hai appena creato la richiesta continua di 15 minuti, l'attivazione può richiedere alcune ore.\n\nApri il portale ({portal_url}) e verifica l'abbonamento. Home Assistant riprova ogni {retry_minutes} minuto/i. Non è un problema di credenziali."
+    },
+    "waiting_for_portal_data": {
+      "title": "In attesa del primo dataset per {vehicle}",
+      "description": "Accesso riuscito ma nessun dataset ricevuto. Sul portale ({portal_url}) verifica che una richiesta continua di 15 minuti sia attiva, il veicolo sia collegato sotto Data clusters e sia stato online di recente.\n\nI primi dati arrivano spesso entro 15–60 minuti. Home Assistant riprova ogni {retry_minutes} minuto/i."
+    },
+    "empty_snapshots": {
+      "title": "Solo snapshot vuoti per {vehicle}",
+      "description": "L'abbonamento al portale è attivo ma finora sono stati ricevuti solo snapshot vuoti ({empty_count} × _no_content_found). Sveglia l'auto (guida, accensione o app) per caricare la telemetria.\n\nHome Assistant riprova ogni {retry_minutes} minuto/i. Portale: {portal_url}"
+    }
+  },
+  "entity": {
+    "button": {
+      "refresh": {
+        "name": "Aggiorna ora"
+      }
+    },
+    "sensor": {
+      "battery_state_report_soc": {
+        "name": "Batteria"
+      },
+      "settings_target_soc": {
+        "name": "Livello di carica target"
+      },
+      "battery_state_report_charge_bulk_threshold": {
+        "name": "Soglia carica bulk"
+      },
+      "battery_state_report_charge_power": {
+        "name": "Potenza di carica"
+      },
+      "battery_state_report_charge_rate": {
+        "name": "Velocità di carica"
+      },
+      "battery_state_report_charge_energy": {
+        "name": "Energia caricata"
+      },
+      "battery_state_report_remaining_charging_time_complete": {
+        "name": "Tempo di carica rimanente"
+      },
+      "battery_state_report_remaining_charging_time_bulk": {
+        "name": "Tempo rimanente al bulk"
+      },
+      "energy_contents_current_energy_content_physical_value": {
+        "name": "Energia batteria"
+      },
+      "energy_contents_maximal_energy_content_physical_value": {
+        "name": "Capacità batteria"
+      },
+      "battery_care_mode_charge_bcam_threshold": {
+        "name": "Soglia carica BCAM"
+      },
+      "charging_state_report_error_code": {
+        "name": "Codice errore carica"
+      },
+      "mileage_value": {
+        "name": "Chilometraggio"
+      },
+      "range_value": {
+        "name": "Autonomia elettrica"
+      },
+      "value_of_the_primary_range": {
+        "name": "Autonomia elettrica"
+      },
+      "remaining_climate_time": {
+        "name": "Tempo clima rimanente"
+      },
+      "residual_energy_in_percent": {
+        "name": "Energia residua"
+      },
+      "additional_consumptions_residual_consumption": {
+        "name": "Consumo residuo"
+      },
+      "additional_consumptions_interior_climatization_consumption": {
+        "name": "Consumo clima"
+      },
+      "slope_consumption_values_ascent_slope_consumption_physical_value": {
+        "name": "Consumo in salita"
+      },
+      "slope_consumption_values_descent_slope_consumption_physical_value": {
+        "name": "Consumo in discesa"
+      },
+      "outdoor_temperature": {
+        "name": "Temperatura esterna"
+      },
+      "min_temperature": {
+        "name": "Temp. min batteria"
+      },
+      "max_temperature": {
+        "name": "Temp. max batteria"
+      },
+      "mileage_value_timestamp": {
+        "name": "Ultima connessione"
+      },
+      "car_captured_time": {
+        "name": "Ultima telemetria"
+      },
+      "instrument_cluster_time": {
+        "name": "Orologio veicolo"
+      },
+      "bem_level": {
+        "name": "Livello BEM"
+      },
+      "mileage": {
+        "name": "Chilometraggio"
+      },
+      "cruising_range_combined": {
+        "name": "Autonomia (combinata)"
+      },
+      "cruising_range_primary_engine": {
+        "name": "Autonomia (primaria)"
+      },
+      "cruising_range_secondary_engine": {
+        "name": "Autonomia (secondaria)"
+      },
+      "range": {
+        "name": "Autonomia elettrica"
+      },
+      "scr_range": {
+        "name": "Autonomia SCR"
+      },
+      "state_of_charge": {
+        "name": "Batteria"
+      },
+      "remaining_charging_time": {
+        "name": "Tempo di carica rimanente"
+      },
+      "charged_energy": {
+        "name": "Energia totale caricata"
+      },
+      "fuel_level_current_level": {
+        "name": "Livello carburante"
+      },
+      "fuel_level__accuracy": {
+        "name": "Precisione livello carburante"
+      },
+      "cng_gas_level": {
+        "name": "Livello gas CNG"
+      },
+      "outside_temperature": {
+        "name": "Temperatura esterna"
+      },
+      "tyre_pressure_actual_front_left": {
+        "name": "Pressione gomma ASX"
+      },
+      "tyre_pressure_actual_front_right": {
+        "name": "Pressione gomma ADX"
+      },
+      "tyre_pressure_actual_rear_left": {
+        "name": "Pressione gomma PSX"
+      },
+      "tyre_pressure_actual_rear_right": {
+        "name": "Pressione gomma PDX"
+      },
+      "tyre_pressure_actual_spare_tyre": {
+        "name": "Pressione gomma scorta"
+      },
+      "tyre_pressure_differential_front_left": {
+        "name": "Diff. pressione ASX"
+      },
+      "tyre_pressure_differential_front_right": {
+        "name": "Diff. pressione ADX"
+      },
+      "tyre_pressure_differential_rear_left": {
+        "name": "Diff. pressione PSX"
+      },
+      "tyre_pressure_differential_rear_right": {
+        "name": "Diff. pressione PDX"
+      },
+      "tyre_pressure_differential_spare_tyre": {
+        "name": "Diff. pressione scorta"
+      },
+      "position_front_left_door_window_lifter": {
+        "name": "Posizione finestrino ASX"
+      },
+      "position_front_right_door_window_lifter": {
+        "name": "Posizione finestrino ADX"
+      },
+      "position_rear_left_door_window_lifter": {
+        "name": "Posizione finestrino PSX"
+      },
+      "position_rear_right_door_window_lifter": {
+        "name": "Posizione finestrino PDX"
+      },
+      "position_sunroof_motor_hood_1": {
+        "name": "Posizione tetto apribile"
+      },
+      "maintenance_interval__time_until_inspection": {
+        "name": "Intervallo ispezione"
+      },
+      "maintenance_interval__time_until_oil_change": {
+        "name": "Intervallo cambio olio"
+      },
+      "maintenance_interval_distance_until_inspection": {
+        "name": "Distanza ispezione"
+      },
+      "maintenance_interval_distance_until_oil_change": {
+        "name": "Distanza cambio olio"
+      },
+      "long_term_data_mileage": {
+        "name": "Distanza viaggio (lungo)"
+      },
+      "long_term_data_start_mileage": {
+        "name": "Km partenza (lungo)"
+      },
+      "long_term_data_average_fuel_consumption": {
+        "name": "Consumo medio benzina (lungo)"
+      },
+      "long_term_data_average_electr_engine_consumption": {
+        "name": "Consumo medio elettrico (lungo)"
+      },
+      "long_term_data_average_speed": {
+        "name": "Velocità media (lungo)"
+      },
+      "long_term_data_travel_time": {
+        "name": "Tempo di viaggio (lungo)"
+      },
+      "short_term_data_mileage": {
+        "name": "Distanza viaggio (breve)"
+      },
+      "short_term_data_start_mileage": {
+        "name": "Km partenza (breve)"
+      },
+      "short_term_data_average_fuel_consumption": {
+        "name": "Consumo medio benzina (breve)"
+      },
+      "short_term_data_average_electr_engine_consumption": {
+        "name": "Consumo medio elettrico (breve)"
+      },
+      "short_term_data_travel_time": {
+        "name": "Tempo di viaggio (breve)"
+      },
+      "oil_level_actual_level": {
+        "name": "Livello olio"
+      },
+      "oil_level_additional_oil_level": {
+        "name": "Livello olio aggiuntivo"
+      },
+      "oil_level_total_max": {
+        "name": "Livello olio max"
+      },
+      "oil_level_dipstick_indicator_function": {
+        "name": "Indicatore asta olio"
+      },
+      "mileage_timestamp": {
+        "name": "Ultima connessione"
+      },
+      "integration_status": {
+        "name": "Stato integrazione",
+        "state": {
+          "starting": "Avvio",
+          "ok": "OK",
+          "waiting_for_portal_data": "In attesa di dati",
+          "empty_snapshots": "Solo snapshot vuoti",
+          "delivery_not_ready": "Consegna non pronta"
+        }
+      },
+      "charge_state": {
+        "name": "Stato di carica",
+        "state": {
+          "CHARGE_STATE_READY_FOR_CHARGING": "Pronto per la carica",
+          "CHARGE_STATE_NOT_READY_FOR_CHARGING": "Non pronto",
+          "CHARGE_STATE_CHARGING_HV_BATTERY": "Carica batteria HV",
+          "CHARGE_STATE_CONSERVATION_CHARGING": "Carica di conservazione",
+          "CHARGE_STATE_DISCHARGING": "Scarica",
+          "CHARGE_STATE_CHARGING_ERROR": "Errore di carica",
+          "CHARGE_STATE_CHARGE_PURPOSE_REACHED_AND_CONSERVATION": "Obiettivo raggiunto (conservazione)",
+          "CHARGE_STATE_CHARGE_PURPOSE_REACHED_AND_NOT_CONSERVATION_CHARGING": "Obiettivo raggiunto"
+        }
+      },
+      "charge_mode": {
+        "name": "Modalità di carica",
+        "state": {
+          "CHARGE_MODE_IMMEDIATELY_DEFAULT": "Immediata (predefinita)",
+          "CHARGE_MODE_IMMEDIATELY_PROFILE": "Immediata (profilo)",
+          "CHARGE_MODE_IMMEDIATELY_STOPPED": "Immediata arrestata",
+          "CHARGE_MODE_EXTENDED_PROFILE": "Estesa (profilo)",
+          "CHARGE_MODE_EXTENDED_STOPPED": "Estesa arrestata",
+          "CHARGE_MODE_INVALID": "Non valido"
+        }
+      },
+      "charge_type": {
+        "name": "Tipo di carica",
+        "state": {
+          "CHARGE_TYPE_AC": "AC",
+          "CHARGE_TYPE_DC": "DC",
+          "CHARGE_TYPE_OFF": "Spento"
+        }
+      },
+      "charging_scenario": {
+        "name": "Scenario di carica",
+        "state": {
+          "CHARGING_SCENARIO_OFF": "Spento",
+          "CHARGING_SCENARIO_IMMEDIATELY_CHARGING_ACTIVE": "Carica immediata attiva",
+          "CHARGING_SCENARIO_IMMEDIATELY_CHARGING_FINISHED": "Carica immediata terminata",
+          "CHARGING_SCENARIO_CHARGING_TO_DEPARTURE_TIME_ACTIVE": "Carica fino alla partenza",
+          "CHARGING_SCENARIO_CHARGING_TO_DEPARTURE_TIME_FINISHED": "Carica partenza terminata",
+          "CHARGING_SCENARIO_OPTIMISED_CHARGING_AC": "Carica AC ottimizzata",
+          "CHARGING_SCENARIO_OPTIMISED_CHARGING_FINISHED": "Carica ottimizzata terminata"
+        }
+      },
+      "immediate_action_state": {
+        "name": "Stato azione di carica",
+        "state": {
+          "IMMEDIATE_ACTION_STATE_INVALID": "Non valido",
+          "IMMEDIATE_ACTION_STATE_IMMEDIATE_CHARGING": "Carica immediata",
+          "IMMEDIATE_ACTION_STATE_IMMEDIATE_ACTION_TIME": "Azione: orario",
+          "IMMEDIATE_ACTION_STATE_IMMEDIATE_ACTION_STOPPED": "Azione arrestata",
+          "IMMEDIATE_ACTION_STATE_IMMEDIATE_ACTION_RANGE": "Azione: autonomia",
+          "IMMEDIATE_ACTION_STATE_IMMEDIATE_ACTION_SOC": "Azione: carica",
+          "IMMEDIATE_ACTION_STATE_CHARGE_MODE_SELECTION": "Selezione modalità"
+        }
+      },
+      "charge_mode_selection": {
+        "name": "Selezione modalità carica",
+        "state": {
+          "CHARGE_MODE_SELECTION_INVALID": "Non valido",
+          "CHARGE_MODE_SELECTION_IMMEDIATECHARGING": "Carica immediata",
+          "CHARGE_MODE_SELECTION_IMMEDIATE_DISCHARGING": "Scarica immediata",
+          "CHARGE_MODE_SELECTION_TIMERCHARGING": "Carica a timer",
+          "CHARGE_MODE_SELECTION_TIMER_CHARGING_CLIMATIZATION": "Timer + clima",
+          "CHARGE_MODE_SELECTION_PREFERRED_CHARGING_TIMES": "Orari preferiti",
+          "CHARGE_MODE_SELECTION_ONLY_OWN_CURRENT": "Solo corrente propria",
+          "CHARGE_MODE_SELECTION_HOME_STORAGE_CHARGING": "Accumulo domestico"
+        }
+      },
+      "max_ac_charge_current": {
+        "name": "Corrente AC max",
+        "state": {
+          "MAX_CHARGE_CURRENT_INVALID": "Non valido",
+          "MAX_CHARGE_CURRENT_MAXIMUM": "Massimo",
+          "MAX_CHARGE_CURRENT_REDUCED": "Ridotto"
+        }
+      },
+      "auto_unlock_ac": {
+        "name": "Sblocco AC automatico",
+        "state": {
+          "AUTO_UNLOCK_AC_INVALID": "Non valido",
+          "AUTO_UNLOCK_AC_OFF": "Spento",
+          "AUTO_UNLOCK_AC_ONCE": "Una volta",
+          "AUTO_UNLOCK_AC_PERMANENT": "Permanente"
+        }
+      },
+      "bcam_activation": {
+        "name": "Attivazione BCAM",
+        "state": {
+          "BCAM_ACTIVATION_ACTIVATED": "Attivato",
+          "BCAM_ACTIVATION_DEACTIVATED": "Disattivato"
+        }
+      },
+      "charging_timer_reachability": {
+        "name": "Raggiungibilità timer carica",
+        "state": {
+          "TARGET_REACHABILITY_CALCULATING": "Calcolo in corso",
+          "TARGET_REACHABILITY_REACHABLE": "Raggiungibile",
+          "TARGET_REACHABILITY_NOT_REACHABLE": "Non raggiungibile"
+        }
+      },
+      "window_heating_state": {
+        "name": "Riscaldamento vetri",
+        "state": {
+          "WINDOW_HEATING_STATE_OFF": "Spento",
+          "WINDOW_HEATING_STATE_ON": "Acceso"
+        }
+      }
     }
   }
 }

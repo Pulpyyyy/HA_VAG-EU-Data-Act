@@ -11,6 +11,7 @@
     {"key": "k7", "dataFieldName": "parking_brake", "value": "true"},
     {"key": "k8", "dataFieldName": "remaining_climate_time", "value": "0s"},
     {"key": "k9", "dataFieldName": "car_captured_time", "value": "2026-05-29T22:59:27Z"},
+    {"key": "k14", "dataFieldName": "instrument_cluster_time", "value": "2026-05-29T22:59:27+02:00"},
     {"key": "k10", "dataFieldName": "report_type", "value": "RPT_0"},
     {"key": "k11", "dataFieldName": "charging_state_report.current_charge_state", "value": "CHARGING_STATE_READY_FOR_CHARGING"},
     {"key": "k12", "dataFieldName": "range.value", "value": "312"},
