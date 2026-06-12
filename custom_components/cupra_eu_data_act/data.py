@@ -306,7 +306,12 @@ def find_by_field(
     instead of flip-flopping when the portal reshuffles the array.
     """
     matches = [dp for dp in points.values() if dp.field_name == field_name]
-    return min(matches, key=lambda dp: dp.key) if matches else None
+    if not matches:
+        return None
+    usable = [
+        dp for dp in matches if is_usable_reading(dp.value, dp.field_name)
+    ]
+    return min(usable or matches, key=lambda dp: dp.key)
 
 
 # Field suffixes that carry when the vehicle last reported to the backend.
@@ -329,6 +334,23 @@ def latest_captured_time(points: dict[str, "DataPoint"]) -> datetime | None:
         and (ts := parse_timestamp(dp.raw_value))
     ]
     return max(times) if times else None
+
+
+_LAST_CONNECTED_BASE_FIELDS = ("mileage.value", "mileage")
+
+
+def last_connected_time(points: dict[str, DataPoint]) -> datetime | None:
+    """When the vehicle last reported mileage / odometer to the backend.
+
+  Many Cupra/MEB datasets omit ``timestampUtc`` on the mileage data point even
+  though mileage itself is present. Fall back to the newest car-captured
+  timestamp in the payload so "Last connected" stays useful.
+    """
+    for field in _LAST_CONNECTED_BASE_FIELDS:
+        dp = find_by_field(points, field)
+        if dp and dp.timestamp:
+            return dp.timestamp
+    return latest_captured_time(points)
 
 
 def parse_timestamp(raw) -> datetime | None:
@@ -534,6 +556,37 @@ def is_sentinel(value, field_name: str | None = None) -> bool:
     if field_name and as_float in _FIELD_SENTINELS.get(field_name, frozenset()):
         return True
     return False
+
+
+def is_usable_reading(value, field_name: str | None = None) -> bool:
+    """True when a parsed portal value is a real reading worth retaining."""
+    if value is None:
+        return False
+    if isinstance(value, str) and not value.strip():
+        return False
+    return not is_sentinel(value, field_name)
+
+
+def merge_data_points(
+    existing: dict[str, DataPoint],
+    new: dict[str, DataPoint],
+) -> dict[str, DataPoint]:
+    """Merge a new portal snapshot into previous data, keeping last good readings.
+
+    When the portal omits a field or sends a sentinel, the previous value for
+    that dataset key is preserved so coordinator state does not regress across
+    refreshes (entity-level sticky then covers per-sensor display).
+    """
+    merged = dict(existing)
+    for key, dp in new.items():
+        old = merged.get(key)
+        if is_usable_reading(dp.value, dp.field_name):
+            merged[key] = dp
+        elif old is not None:
+            continue
+        else:
+            merged[key] = dp
+    return merged
 
 
 # Named unit resolvers selectable per curated sensor via ``unit_resolver``.

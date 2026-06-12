@@ -28,12 +28,17 @@ from .data import (
     find_by_field,
     friendly_name,
     is_sentinel,
+    last_connected_time,
     latest_captured_time,
     resolve_distance_unit,
     shorten_enum_label,
     total_charged_energy_kwh,
 )
 from .entity import EudaEntity
+
+_LAST_CONNECTED_CURATED_FIELDS = frozenset(
+    {"mileage.value.timestamp", "mileage.timestamp"}
+)
 
 
 async def async_setup_entry(
@@ -51,6 +56,7 @@ async def async_setup_entry(
             EudaDaysUntilSubscriptionExpiresSensor(coordinator),
             EudaMinutesSinceLastSnapshotSensor(coordinator),
             EudaLastVehicleUpdateSensor(coordinator),
+            EudaLastConnectedSensor(coordinator),
             EudaDatasetGeneratedSensor(coordinator),
             EudaUncuratedFieldsCountSensor(coordinator),
         ]
@@ -87,17 +93,19 @@ async def async_setup_entry(
         for curated in curated_sensors:
             if curated.field_name in added_curated:
                 continue
+            if curated.field_name in _LAST_CONNECTED_CURATED_FIELDS:
+                continue
             if curated.field_name == "last_charge_kwh":
                 if total_charged_energy_kwh(points) is not None:
                     new_entities.append(EudaCuratedSensor(coordinator, curated))
                     added_curated.add(curated.field_name)
                 continue
             # Timestamp sensors track ".timestamp" on a base field (e.g.
-            # mileage.value.timestamp). They appear once the base field arrives.
+            # mileage.value.timestamp). Create once the base mileage field is
+            # present — timestampUtc is often missing on Cupra/MEB payloads.
             if ".timestamp" in curated.field_name:
                 base_field = curated.field_name.replace(".timestamp", "")
-                base_dp = find_by_field(points, base_field)
-                if base_dp is not None and base_dp.timestamp is not None:
+                if find_by_field(points, base_field) is not None:
                     new_entities.append(EudaCuratedSensor(coordinator, curated))
                     added_curated.add(curated.field_name)
             elif curated.field_name in present_fields:
@@ -159,7 +167,6 @@ class EudaCuratedSensor(EudaEntity, SensorEntity):
 
     @property
     def native_value(self):
-        # Special handling for timestamp fields (both "mileage.timestamp" and "mileage.value.timestamp")
         if ".timestamp" in self._curated.field_name:
             base_field = self._curated.field_name.replace(".timestamp", "")
             dp = find_by_field(self.coordinator.data or {}, base_field)
@@ -430,6 +437,27 @@ class EudaLastVehicleUpdateSensor(EudaEntity, SensorEntity):
     @property
     def native_value(self):
         return self._sticky(latest_captured_time(self.coordinator.data or {}))
+
+
+class EudaLastConnectedSensor(EudaEntity, SensorEntity):
+    """When the vehicle last reported mileage / odometer to the backend.
+
+    Registered at setup (not via discovery) so the entity stays linked in the
+    registry. Many Cupra/MEB payloads omit ``timestampUtc`` on the mileage
+    field; :func:`last_connected_time` falls back to car-captured timestamps.
+    """
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_icon = "mdi:clock"
+
+    def __init__(self, coordinator: EudaCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.vin}_last_connected"
+        self._attr_translation_key = "last_connected"
+
+    @property
+    def native_value(self):
+        return self._sticky(last_connected_time(self.coordinator.data or {}))
 
 
 class EudaDatasetGeneratedSensor(EudaEntity, SensorEntity):

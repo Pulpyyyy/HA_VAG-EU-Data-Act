@@ -25,7 +25,7 @@ from .const import (
     RETRY_INTERVAL,
     SUBSCRIPTION_VALIDITY,
 )
-from .data import Dataset, DataPoint, latest_captured_time
+from .data import Dataset, DataPoint, latest_captured_time, merge_data_points
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -312,14 +312,21 @@ class EudaCoordinator(DataUpdateCoordinator[dict[str, DataPoint]]):
         self.status_label = "ok"
         self.empty_snapshot_count = 0
 
-        # Merge new data with existing to preserve missing fields
-        if self.data:
-            merged = dict(self.data)
-            merged.update(self.latest_dataset.points)
-            return merged
+        new_points = self.latest_dataset.points
+        if not new_points:
+            if self.data:
+                _LOGGER.debug(
+                    "Downloaded dataset contained no data points; keeping previous data"
+                )
+                return self.data
+            return new_points
 
-        # First successful load
-        return self.latest_dataset.points
+        # Merge new data with existing: keep last good reading per key and for
+        # fields omitted or sent as sentinel in the latest snapshot.
+        if self.data:
+            return merge_data_points(self.data, new_points)
+
+        return new_points
 
     async def _async_list_with_refresh(self) -> list[dict]:
         """List datasets, self-healing a stale identifier once if needed.
@@ -385,7 +392,18 @@ class EudaCoordinator(DataUpdateCoordinator[dict[str, DataPoint]]):
             if last_error:
                 self.update_interval = RETRY_INTERVAL
 
-                # HTTP 400 special case: subscription not yet active
+                if self.data:
+                    if isinstance(last_error, ApiError) and last_error.status == 400:
+                        self.status_label = "delivery_not_ready"
+                    _LOGGER.warning(
+                        "Failed to list datasets after %d attempts: %s. "
+                        "Keeping previous data.",
+                        max_retries,
+                        last_error,
+                    )
+                    return []
+
+                # HTTP 400 on first load: subscription not yet active
                 if isinstance(last_error, ApiError) and last_error.status == 400:
                     self.status_label = "delivery_not_ready"
                     raise EudaUpdateNotReady(
@@ -398,16 +416,6 @@ class EudaCoordinator(DataUpdateCoordinator[dict[str, DataPoint]]):
                         },
                     ) from last_error
 
-                # Server errors with existing data - return empty to keep old data
-                if _is_server_error(last_error) and self.data:
-                    _LOGGER.error(
-                        "Failed to list datasets after %d attempts: %s. Keeping previous data.",
-                        max_retries,
-                        last_error,
-                    )
-                    return []
-
-                # Other errors or first load: raise UpdateFailed
                 raise UpdateFailed(str(last_error)) from last_error
 
         return []

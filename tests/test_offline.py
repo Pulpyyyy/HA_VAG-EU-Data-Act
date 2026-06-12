@@ -199,6 +199,57 @@ def main() -> int:
     check("zero is not missing", data.sticky(55, 0), 0)
     check("false is not missing", data.sticky(True, False), False)
 
+    # --- merge_data_points / find_by_field preference ---------------------
+    print("merge_data_points:")
+    good = data.DataPoint(
+        key="aaaa",
+        field_name="battery",
+        raw_value="72",
+    )
+    bad = data.DataPoint(
+        key="aaaa",
+        field_name="battery",
+        raw_value="4294967295",
+    )
+    merged = data.merge_data_points({"aaaa": good}, {"aaaa": bad})
+    check("sentinel does not overwrite good key", merged["aaaa"].value, 72)
+    merged2 = data.merge_data_points(
+        {"aaaa": good},
+        {"bbbb": data.DataPoint(key="bbbb", field_name="mileage", raw_value="100")},
+    )
+    check("new usable key added", merged2["bbbb"].value, 100)
+    check("old key retained", merged2["aaaa"].value, 72)
+    print("find_by_field prefers usable reading:")
+    points = {
+        "bad": data.DataPoint(
+            key="bad",
+            field_name="mileage",
+            raw_value="4294967295",
+        ),
+        "good": data.DataPoint(
+            key="good",
+            field_name="mileage",
+            raw_value="20717",
+        ),
+    }
+    check(
+        "usable mileage wins over sentinel",
+        data.find_by_field(points, "mileage").value,
+        20717,
+    )
+    print("last_connected_time:")
+    sample = json.loads(
+        (Path(__file__).parent / "fixtures" / "sample_dataset.json").read_text()
+    )
+    ds = data.Dataset.from_json(sample)
+    ts = data.last_connected_time(ds.points)
+    check("falls back to car_captured_time", ts is not None, True)
+    check(
+        "uses car_captured_time value",
+        ts.isoformat().startswith("2026-05-29"),
+        True,
+    )
+
     # --- sentinel detection -----------------------------------------------
     print("sentinel detection:")
     check("uint32 max mileage", data.is_sentinel(4294967295, "mileage"), True)

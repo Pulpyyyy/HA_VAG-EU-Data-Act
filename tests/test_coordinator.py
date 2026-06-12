@@ -21,6 +21,7 @@ from custom_components.cupra_eu_data_act.const import (
     DOMAIN,
 )
 from custom_components.cupra_eu_data_act.coordinator import EudaCoordinator
+from custom_components.cupra_eu_data_act.data import DataPoint
 
 
 def _make_coordinator(hass, client) -> EudaCoordinator:
@@ -61,6 +62,63 @@ async def test_auth_error_while_downloading_raises_reauth(hass) -> None:
 
     with pytest.raises(ConfigEntryAuthFailed):
         await coordinator._async_update_data()
+
+
+async def test_http_400_with_existing_data_keeps_previous(hass) -> None:
+    client = MagicMock()
+    client.async_list_datasets = AsyncMock(
+        side_effect=ApiError("HTTP 400", status=400)
+    )
+    coordinator = _make_coordinator(hass, client)
+    previous = {
+        "key-1": DataPoint(
+            key="key-1",
+            field_name="mileage",
+            raw_value="1000",
+        )
+    }
+    coordinator.data = previous
+
+    result = await coordinator._async_update_data()
+
+    assert result is previous
+    assert coordinator.status_label == "delivery_not_ready"
+
+
+async def test_merge_keeps_good_value_when_new_snapshot_has_sentinel(hass) -> None:
+    client = MagicMock()
+    client.async_list_datasets = AsyncMock(
+        return_value=[
+            {
+                "name": "WVWZZZTESTVIN0001_20260102000000.zip",
+                "createdOn": "2026-01-02T00:00:00Z",
+            }
+        ]
+    )
+    client.async_download_dataset = AsyncMock(
+        return_value={
+            "user_id": "u1",
+            "Data": [
+                {
+                    "key": "key-1",
+                    "dataFieldName": "battery",
+                    "value": "4294967295",
+                }
+            ],
+        }
+    )
+    coordinator = _make_coordinator(hass, client)
+    coordinator.data = {
+        "key-1": DataPoint(
+            key="key-1",
+            field_name="battery",
+            raw_value="72",
+        )
+    }
+
+    result = await coordinator._async_update_data()
+
+    assert result["key-1"].value == 72
 
 
 async def test_plain_api_error_does_not_raise_reauth(hass) -> None:

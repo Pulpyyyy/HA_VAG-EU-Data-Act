@@ -33,6 +33,7 @@ def translation_key_for_unique_id(unique_id: str, vin: str) -> str | None:
         ("days_until_subscription_expires", "days_until_subscription_expires"),
         ("minutes_since_last_snapshot", "minutes_since_last_snapshot"),
         ("last_vehicle_update", "last_vehicle_update"),
+        ("last_connected", "last_connected"),
         ("dataset_generated", "dataset_generated"),
         ("uncurated_fields_count", "uncurated_fields_count"),
     ):
@@ -63,11 +64,24 @@ async def async_migrate_entity_translations(
     def _migrate(reg_entry: er.RegistryEntry) -> dict | None:
         if reg_entry.domain not in ("sensor", "binary_sensor"):
             return None
-        key = translation_key_for_unique_id(reg_entry.unique_id, vin)
+        updates: dict = {}
+        if reg_entry.unique_id in (
+            f"{vin}_mileage.value.timestamp",
+            f"{vin}_mileage.timestamp",
+        ):
+            updates["new_unique_id"] = f"{vin}_last_connected"
+        unique_id = updates.get("new_unique_id", reg_entry.unique_id)
+        key = translation_key_for_unique_id(unique_id, vin)
         if not key:
+            return updates or None
+        if (
+            not updates
+            and reg_entry.translation_key == key
+            and reg_entry.name is None
+        ):
             return None
-        if reg_entry.translation_key == key and reg_entry.name is None:
-            return None
-        return {"translation_key": key, "name": None}
+        updates.setdefault("translation_key", key)
+        updates.setdefault("name", None)
+        return updates
 
     await er.async_migrate_entries(hass, entry.entry_id, _migrate)

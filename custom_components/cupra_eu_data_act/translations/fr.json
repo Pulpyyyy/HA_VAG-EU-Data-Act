@@ -337,6 +337,9 @@
       "last_vehicle_update": {
         "name": "Dernière mise à jour véhicule"
       },
+      "last_connected": {
+        "name": "Dernière connexion"
+      },
       "dataset_generated": {
         "name": "Jeu de données généré"
       },

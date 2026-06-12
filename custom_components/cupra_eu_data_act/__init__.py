@@ -90,11 +90,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: EudaConfigEntry) -> bool
         # so they survive the namespacing fix that lets multiple vehicles work.
         await _async_migrate_raw_unique_ids(hass, entry)
 
-        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-
-        # After platforms register entities, patch registry so translated names
-        # resolve (existing entries created before v0.5.3 lack translation_key).
+        # Before platforms register entities: rename legacy unique_ids (e.g.
+        # mileage.value.timestamp -> last_connected) so restored orphans are
+        # adopted instead of duplicated.
         await async_migrate_entity_translations(hass, entry)
+
+        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
         @callback
         def _on_coordinator_update() -> None:

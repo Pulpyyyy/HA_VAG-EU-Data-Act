@@ -1,5 +1,43 @@
 # Release notes
 
+## v0.6.5 — Last-known values & last-connected fix (2026-06-12)
+
+### Summary
+
+Sensor values no longer regress when the portal delivers empty snapshots,
+sentinel readings, or temporary API errors. The **Last connected** entity is
+registered reliably and works on Cupra/MEB datasets that omit `timestampUtc`
+on the mileage field.
+
+### Last-known value retention
+
+- **Coordinator merge** — new snapshots no longer overwrite good readings with
+  portal sentinels or missing fields (`merge_data_points` / `is_usable_reading`).
+- **`find_by_field`** — when duplicate field names exist, usable values are
+  preferred over sentinel garbage.
+- **Listing failures** — if data was loaded before, poll errors (including HTTP
+  400 “delivery not ready”) keep the previous dataset instead of failing the
+  update cycle.
+
+Entity-level sticky semantics are unchanged; this release hardens the shared
+coordinator state underneath.
+
+### Last connected sensor
+
+- Dedicated **`last_connected`** sensor, registered at setup (not discovery-only).
+- **`last_connected_time()`** — uses the mileage timestamp when present, otherwise
+  falls back to the newest car-captured time in the payload.
+- **Registry migration** — legacy `unique_id`s (`mileage.value.timestamp` /
+  `mileage.timestamp`) are renamed to `last_connected` *before* platforms load,
+  so restored/orphan entities are adopted instead of staying unavailable.
+
+### Tests
+
+- Offline tests for merge, sentinel preference, and `last_connected_time` fallback.
+- Coordinator tests for HTTP 400 with existing data and sentinel merge behaviour.
+
+---
+
 ## v0.6.4 — Data freshness sensors & readable enum labels (2026-06-11)
 
 ### Summary
