@@ -663,6 +663,43 @@ def main() -> int:
     ]})
     unit_dp = ds_mi.by_field("mileage.unit")
     check("resolved unit from dataset", data.resolve_distance_unit(unit_dp.value), "mi")
+    primary = next(
+        s for s in data.CURATED_SENSORS_DOTTED if s.field_name == "value_of_the_primary_range"
+    )
+    check(
+        "primary range declares unit_fields",
+        primary.unit_fields,
+        data.PRIMARY_RANGE_UNIT_FIELDS,
+    )
+    ds_range_mi = data.Dataset.from_json({"vin": "V", "user_id": "u", "Data": [
+        {"key": "r1", "dataFieldName": "value", "value": "180",
+         "description": "Range for the corresponding engine primary range"},
+        {"key": "r2", "dataFieldName": "mileage.unit", "value": "MILES"},
+    ]})
+    check(
+        "primary range unit from mileage.unit",
+        data.resolve_primary_range_unit(ds_range_mi.points),
+        "mi",
+    )
+    ds_range_km = data.Dataset.from_json({"vin": "V", "user_id": "u", "Data": [
+        {"key": "r1", "dataFieldName": "value_of_the_primary_range", "value": "280"},
+        {"key": "r2", "dataFieldName": "range.unit", "value": "KM"},
+    ]})
+    check(
+        "primary range prefers range.unit",
+        data.resolve_primary_range_unit(ds_range_km.points),
+        "km",
+    )
+    ds_cruising = data.Dataset.from_json({"vin": "V", "user_id": "u", "Data": [
+        {"key": "r1", "dataFieldName": "value_of_the_primary_range", "value": "200"},
+        {"key": "r2", "dataFieldName": "battery_state_report.cruising_ranges.0.unit",
+         "value": "MILES"},
+    ]})
+    check(
+        "primary range falls back to cruising_ranges unit",
+        data.resolve_primary_range_unit(ds_cruising.points),
+        "mi",
+    )
 
     # --- charged-energy harmonisation across dataset formats ----------------
     print("charged-energy harmonisation:")

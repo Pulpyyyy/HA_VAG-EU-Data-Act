@@ -1,5 +1,38 @@
 # Release notes
 
+## v0.6.14 — Primary range distance units (2026-06-13)
+
+### Summary
+
+Fixes hardcoded **km** on the `value_of_the_primary_range` electric-range sensor
+(Cupra/MEB datasets that expose a generic portal `value` field). Units are now
+resolved from companion portal fields — important for UK vehicles reporting
+range in **miles**.
+
+### Distance unit resolution
+
+- **`value_of_the_primary_range`** (curated + raw diagnostic) inherits units via
+  fallback chain: `range.unit` → `mileage.unit` →
+  `battery_state_report.cruising_ranges.*.unit` → default `km`.
+- New helpers: `resolve_distance_unit_from_companion_fields()`,
+  `resolve_primary_range_unit()`, and `CuratedSensor.unit_fields` for ordered
+  fallbacks.
+- **`mileage.value`** / **`range.value`** behaviour unchanged (still use their
+  dedicated `*.unit` fields).
+
+### Bug fix
+
+- **Raw diagnostic sensors** no longer crash entity setup with
+  `AttributeError` when `native_unit_of_measurement` was never set (e.g.
+  enum/string raw fields).
+
+### Tests
+
+- Offline coverage for primary-range unit resolution (mileage.unit, range.unit,
+  cruising_ranges fallback).
+
+---
+
 ## v0.6.13 — Data dictionary V5.0 (2026-06-12)
 
 ### Summary

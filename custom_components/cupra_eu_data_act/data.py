@@ -457,6 +457,38 @@ def resolve_distance_unit(enum_value, default: str | None = None) -> str | None:
     return default
 
 
+# Companion fields tried in order when a range value has no dedicated *.unit
+# (e.g. ``value_of_the_primary_range`` normalized from a generic portal ``value``).
+PRIMARY_RANGE_UNIT_FIELDS: tuple[str, ...] = ("range.unit", "mileage.unit")
+
+
+def resolve_distance_unit_from_companion_fields(
+    points: dict[str, DataPoint],
+    *field_names: str,
+) -> str | None:
+    """Resolve HA distance unit from the first available companion *.unit field."""
+    for field_name in field_names:
+        dp = find_by_field(points, field_name)
+        if dp is not None:
+            resolved = resolve_distance_unit(dp.value)
+            if resolved:
+                return resolved
+    for dp in points.values():
+        fn = dp.field_name
+        if "cruising_ranges" in fn and fn.endswith(".unit"):
+            resolved = resolve_distance_unit(dp.value)
+            if resolved:
+                return resolved
+    return None
+
+
+def resolve_primary_range_unit(points: dict[str, DataPoint]) -> str | None:
+    """Distance unit for ``value_of_the_primary_range`` (no own *.unit field)."""
+    return resolve_distance_unit_from_companion_fields(
+        points, *PRIMARY_RANGE_UNIT_FIELDS
+    )
+
+
 # Charge-rate unit enums (battery_state_report.charge_rate_unit) -> HA unit.
 # The charge rate is expressed as range gained over time and the unit (km vs
 # miles, per hour vs per minute) varies by vehicle/region, so it is read from
@@ -674,6 +706,8 @@ class CuratedSensor:
     # companion field holding the unit enum (e.g. "mileage.unit"); when set, the
     # sensor's unit is resolved from it at runtime, falling back to ``unit``.
     unit_field: str | None = None
+    # fallback chain when the value field has no dedicated *.unit (tried in order).
+    unit_fields: tuple[str, ...] = ()
     # which named resolver in UNIT_RESOLVERS to apply to ``unit_field``'s value.
     unit_resolver: str = "distance"
     # number of decimal places to show (None = auto)
@@ -872,7 +906,7 @@ CURATED_SENSORS_DOTTED: tuple[CuratedSensor, ...] = (
         suggested_display_precision=0,
     ),
     # Cupra/MEB portal sometimes exposes range as a flat dataFieldName instead of
-    # range.value; the dictionary entry has no unit, so we declare km here.
+    # range.value; the dictionary entry has no unit — inherit from range/mileage.
     CuratedSensor(
         "value_of_the_primary_range",
         "Electric range",
@@ -880,6 +914,7 @@ CURATED_SENSORS_DOTTED: tuple[CuratedSensor, ...] = (
         "km",
         "measurement",
         icon="mdi:map-marker-distance",
+        unit_fields=PRIMARY_RANGE_UNIT_FIELDS,
         suggested_display_precision=0,
     ),
     # === Climate ===
@@ -1159,6 +1194,7 @@ CURATED_SENSORS_FLAT: tuple[CuratedSensor, ...] = (
         "km",
         "measurement",
         icon="mdi:map-marker-distance",
+        unit_fields=PRIMARY_RANGE_UNIT_FIELDS,
         suggested_display_precision=0,
     ),
     CuratedSensor(

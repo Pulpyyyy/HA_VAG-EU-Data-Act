@@ -33,6 +33,8 @@ from .data import (
     last_connected_time,
     latest_captured_time,
     resolve_distance_unit,
+    resolve_distance_unit_from_companion_fields,
+    resolve_primary_range_unit,
     shorten_enum_label,
     total_charged_energy_kwh,
 )
@@ -262,23 +264,38 @@ class EudaCuratedSensor(EudaEntity, SensorEntity):
         # the unit at runtime so miles vs km is reported correctly per vehicle;
         # otherwise use the static curated unit.
         cur = self._curated
+        points = self.coordinator.data or {}
+        unit_candidates: list[str] = []
         if cur.unit_field:
-            points = self.coordinator.data or {}
-            dp = find_by_field(points, cur.unit_field)
-            if dp is not None:
-                resolver = UNIT_RESOLVERS.get(cur.unit_resolver, resolve_distance_unit)
-                resolved = resolver(dp.value)
+            unit_candidates.append(cur.unit_field)
+        unit_candidates.extend(cur.unit_fields)
+        if unit_candidates:
+            resolver = UNIT_RESOLVERS.get(cur.unit_resolver, resolve_distance_unit)
+            if cur.unit_fields and cur.unit_resolver == "distance":
+                resolved = resolve_distance_unit_from_companion_fields(
+                    points, *unit_candidates
+                )
                 if resolved:
-                    consider = resolved
-                    if cur.field_name == "battery_state_report.charge_rate":
-                        value_dp = find_by_field(points, cur.field_name)
-                        if value_dp is None or not is_usable_reading(
-                            value_dp.value, cur.field_name
-                        ):
-                            consider = None
-                    stable = self._sticky_unit(consider)
+                    stable = self._sticky_unit(resolved)
                     if stable is not None:
                         return stable
+            else:
+                for field in unit_candidates:
+                    dp = find_by_field(points, field)
+                    if dp is None:
+                        continue
+                    resolved = resolver(dp.value)
+                    if resolved:
+                        consider = resolved
+                        if cur.field_name == "battery_state_report.charge_rate":
+                            value_dp = find_by_field(points, cur.field_name)
+                            if value_dp is None or not is_usable_reading(
+                                value_dp.value, cur.field_name
+                            ):
+                                consider = None
+                        stable = self._sticky_unit(consider)
+                        if stable is not None:
+                            return stable
         return cur.unit
 
 
@@ -296,13 +313,20 @@ class EudaRawSensor(EudaEntity, SensorEntity):
         # key collides between config entries (see raw_unique_id / migration).
         self._attr_unique_id = raw_unique_id(coordinator.vin, key)
         self._attr_name = friendly_name(dp.field_name, dp.description)
+        self._is_primary_range = dp.field_name == "value_of_the_primary_range"
         # only attach a unit when the value is numeric
-        if dp.field_name == "value_of_the_primary_range":
-            self._attr_native_unit_of_measurement = "km"
+        if self._is_primary_range:
             self._attr_device_class = SensorDeviceClass.DISTANCE
             self._attr_state_class = SensorStateClass.MEASUREMENT
         elif dp.unit and dp.type_hint in ("int", "float"):
             self._attr_native_unit_of_measurement = dp.unit
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        if self._is_primary_range:
+            resolved = resolve_primary_range_unit(self.coordinator.data or {})
+            return resolved or "km"
+        return getattr(self, "_attr_native_unit_of_measurement", None)
 
     @property
     def native_value(self):
