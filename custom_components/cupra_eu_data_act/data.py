@@ -824,7 +824,7 @@ CURATED_SENSORS_DOTTED: tuple[CuratedSensor, ...] = (
     CuratedSensor(
         "last_charge_kwh",
         "Last charge",
-        "energy",
+        None,
         "kWh",
         "measurement",
         icon="mdi:battery-charging-wireless",
@@ -1252,7 +1252,7 @@ CURATED_SENSORS_FLAT: tuple[CuratedSensor, ...] = (
     CuratedSensor(
         "last_charge_kwh",
         "Last charge",
-        "energy",
+        None,
         "kWh",
         "measurement",
         icon="mdi:battery-charging-wireless",

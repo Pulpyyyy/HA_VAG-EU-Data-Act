@@ -1,5 +1,23 @@
 # Release notes
 
+## v0.6.15 — Last charge sensor state class (2026-06-14)
+
+### Summary
+
+Fixes a Home Assistant 2026.6 warning for the **Last charge** sensor
+(`last_charge_kwh`): `device_class: energy` combined with
+`state_class: measurement` is no longer valid.
+
+### Bug fix
+
+- **`last_charge_kwh`** — removed `device_class: energy`; keeps `kWh` unit,
+  `measurement` state class, and existing delta logic (kWh from the last
+  charging session). Same pattern as **Battery energy**.
+
+Fixes [#10](https://github.com/TommiG1/HA_VAG-EU-Data-Act/issues/10).
+
+---
+
 ## v0.6.14 — Primary range distance units (2026-06-13)
 
 ### Summary

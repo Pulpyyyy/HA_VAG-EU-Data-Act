@@ -193,8 +193,11 @@ def main() -> int:
         s for s in data.CURATED_SENSORS_DOTTED if s.field_name == "last_charge_kwh"
     )
     check("last_charge has translation_key", _last_charge.translation_key, "last_charge_kwh")
-    check("last_charge device_class energy", _last_charge.device_class, "energy")
-    check("last_charge state_class measurement", _last_charge.state_class, "measurement")
+    check(
+        "last_charge no invalid energy+measurement",
+        _last_charge.device_class is None and _last_charge.state_class == "measurement",
+        True,
+    )
     _batt_energy = next(
         s
         for s in data.CURATED_SENSORS_DOTTED
