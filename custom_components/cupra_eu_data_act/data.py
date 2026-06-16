@@ -227,6 +227,12 @@ class DataPoint:
     cluster: str | None = None
     timestamp_utc: str | None = None
     sequence: int = 0
+    # Capture moment of the dataset this point came from (its newest
+    # car_captured_time), stamped on every point by ``Dataset.from_json``.
+    # Value fields like soc/mileage carry no per-item ``timestampUtc``, so this
+    # dataset-level stamp is their only freshness signal for cross-dataset
+    # selection in ``find_by_field`` and ``merge_data_points``.
+    captured_at: datetime | None = None
 
     @property
     def value(self):
@@ -283,11 +289,18 @@ class Dataset:
             if field_name.rsplit(".", 1)[-1] in _CAPTURED_TIME_SUFFIXES:
                 if ts := _parse_timestamp(dp.raw_value):
                     captured.append(ts)
+        dataset_captured = max(captured) if captured else None
+        # Stamp the dataset's capture moment onto every point so freshness-based
+        # selection works for value fields (soc, mileage, …) that carry no
+        # per-item timestampUtc of their own.
+        if dataset_captured is not None:
+            for dp in points.values():
+                dp.captured_at = dataset_captured
         return cls(
             vin=payload.get("vin", ""),
             user_id=payload.get("user_id"),
             points=points,
-            captured_at=max(captured) if captured else None,
+            captured_at=dataset_captured,
         )
 
     def by_field(self, field_name: str) -> DataPoint | None:
@@ -302,13 +315,17 @@ def _datapoint_freshness(dp: DataPoint) -> datetime | None:
     """Best-known time a single data point describes, or None if unknown.
 
     Uses the point's own ``timestampUtc`` when present; for captured-time
-    fields the value itself *is* the timestamp.
+    fields the value itself *is* the timestamp. Value fields (soc, mileage, …)
+    carry neither, so fall back to the dataset's car_captured_time stamped onto
+    every point in ``Dataset.from_json`` — without it the freshness guard in
+    ``merge_data_points`` and the ranking in ``find_by_field`` are no-ops for
+    exactly the fields users see regress/oscillate.
     """
     if dp.timestamp:
         return dp.timestamp
     if dp.field_name.rsplit(".", 1)[-1] in _CAPTURED_TIME_SUFFIXES:
         return parse_timestamp(dp.raw_value)
-    return None
+    return dp.captured_at
 
 
 def find_by_field(
