@@ -41,8 +41,33 @@ Use the brand that matches your account credentials (VW ID, myAudi, Cupra ID, et
 ## Requirements
 
 - Home Assistant **2024.12.0** or newer
-- Account for your brand on the EU Data Act portal
-- Active **continuous 15-minute** data request on the portal
+- Account for your brand on the EU Data Act portal (VW ID, Cupra ID, myAudi, etc.)
+- You must be the **Primary User** of the vehicle on that account
+- Active **continuous 15-minute** data request on the portal (free; renew on the portal about every 12 months)
+
+## FAQ
+
+### Do I need VW Connect Plus (paid app subscription)?
+
+**No.** VW Connect Plus is a separate paid package for remote app features (climate,
+charge control, etc.) — not for the EU Data Act portal. The [official portal
+FAQ](https://eu-data-act.drivesomethinggreater.com/pl/en/service/faq.html) states
+that access to your vehicle data is **free of charge** under the EU Data Act; you
+only need a Volkswagen Group brand account linked to the vehicle.
+
+Do not confuse that with the portal’s own **continuous data request** (the
+15-minute “subscription” you create under Data clusters). That is free and is
+what this integration downloads — it is unrelated to Connect Plus.
+
+### Does the car need to be online?
+
+**Yes.** The portal only delivers what the vehicle uploads. If you only receive
+`_no_content_found` ZIPs, wake the car (drive, ignition on, or open the mobile
+app). Whether telemetry still flows after all manufacturer connectivity packages
+(basic Connect, trial, Connect Plus) have expired is not fully documented; if you
+get real data without Connect Plus, please share your model in the
+[community thread](https://community.home-assistant.io/t/beta-vw-group-eu-data-act-vehicle-data-for-vw-audi-skoda-seat-cupra-bentley-official-portal/1013514)
+— it helps other owners.
 
 ## Portal setup (required)
 

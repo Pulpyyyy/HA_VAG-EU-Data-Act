@@ -26,6 +26,11 @@ Thank you for helping test **VW Group EU Data Act** for Home Assistant.
 
 **EU(27) only:** the portal service is intended for residents and vehicles registered in the EU(27). Accounts from outside the EU (e.g. Switzerland) may log in but often get no data delivery.
 
+**VW Connect Plus:** not required for the portal or this integration (see README FAQ).
+If you test **without** Connect Plus and still get real ZIPs, please mention that in
+your report — model, country, and whether basic VW Connect / trial connectivity is
+active.
+
 ## Quick smoke test (no Home Assistant)
 
 ```bash
