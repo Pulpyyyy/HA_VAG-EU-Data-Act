@@ -337,6 +337,61 @@ def main() -> int:
         130,
     )
 
+    # Value fields (soc, mileage) carry no per-item timestampUtc, so their
+    # freshness must come from the dataset's car_captured_time stamped by
+    # from_json. Without it the guards above are no-ops for exactly these
+    # fields and soc oscillates / mileage regresses on a fallback download.
+    print("value-field freshness from dataset captured_at:")
+
+    def _soc_dataset(soc_value, soc_key, car_captured_time):
+        return data.Dataset.from_json(
+            {
+                "vin": "V",
+                "Data": [
+                    {
+                        "key": soc_key,
+                        "dataFieldName": "battery_state_report.soc",
+                        "value": soc_value,
+                    },
+                    {
+                        "key": "cct",
+                        "dataFieldName": "car_captured_time",
+                        "value": car_captured_time,
+                    },
+                ],
+            }
+        )
+
+    newer_ds = _soc_dataset("61", "soc", "2026-01-02T10:00:00Z")
+    older_ds = _soc_dataset("55", "soc", "2026-01-01T10:00:00Z")
+    check(
+        "from_json stamps captured_at on value point",
+        newer_ds.points["soc"].captured_at is not None,
+        True,
+    )
+    # Same UUID key: an older fallback dataset must not regress soc.
+    guarded = data.merge_data_points(dict(newer_ds.points), dict(older_ds.points))
+    check(
+        "older fallback does not regress soc (no per-item ts)",
+        data.find_by_field(guarded, "battery_state_report.soc").value,
+        61,
+    )
+    # Distinct UUID keys lingering in the merged store: the fresher dataset's
+    # reading wins instead of an arbitrary array position.
+    lingering = {
+        "soc-old": _soc_dataset("55", "soc-old", "2026-01-01T10:00:00Z").points[
+            "soc-old"
+        ],
+        "soc-new": _soc_dataset("61", "soc-new", "2026-01-02T10:00:00Z").points[
+            "soc-new"
+        ],
+    }
+    check(
+        "fresher dataset's soc wins among lingering keys",
+        data.find_by_field(lingering, "battery_state_report.soc").value,
+        61,
+    )
+
     print("last_connected_time:")
     sample = json.loads(
         (Path(__file__).parent / "fixtures" / "sample_dataset.json").read_text()
