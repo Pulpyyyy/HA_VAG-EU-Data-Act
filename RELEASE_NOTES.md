@@ -1,5 +1,49 @@
 # Release notes
 
+## v0.6.20 — Monotonic odometer & Terramar PHEV aliases (2026-06-17)
+
+### Summary
+
+Fixes **mileage reading low** when a single portal ZIP carries several
+`mileage.value` slots from lagging report snapshots at the same capture time.
+Also adds **Terramar PHEV** flat-field aliases so climate time, plug state, and
+charge power resolve on those payloads.
+
+v0.6.19 fixed cross-dataset freshness for value fields; this release closes the
+remaining **intra-dataset** odometer case it left optional.
+
+### Monotonic odometer
+
+A single dataset can carry multiple `mileage.value` entries (e.g. `70876` vs
+`70908` at the same `car_captured_time`). They tie on freshness, so
+`find_by_field` fell back to last-in-ZIP — which can be the **lower** reading.
+
+- Add `prefer_max_value` to `find_by_field`: for monotonic fields the largest
+  numeric value wins; freshness and ZIP position only break exact-value ties.
+- Add `monotonic` on the `mileage.value` / `mileage` curated sensors and
+  thread it through the curated resolver in `sensor.py`.
+
+The default `find_by_field` path is unchanged; only mileage uses
+`prefer_max_value=True`.
+
+Completes the integration-side odometer part of
+[mikrohard#24](https://github.com/mikrohard/hass-vw-eu-data-act/issues/24).
+
+### Terramar PHEV flat fields (#18)
+
+- Alias `remaining_climatisation_time` → `remaining_climate_time`
+- Alias `charging_plug1_connectionstate` → `plug_state`
+- Expose flat `charging_power` as **Charge power**
+- Use `charging_power` when detecting active charge on PHEV payloads
+
+### Tests
+
+- Offline regression: two `mileage.value` slots in one dataset — default picks
+  last-in-ZIP, `prefer_max_value=True` picks the highest.
+- Terramar alias and `charging_power` curated-sensor coverage.
+
+---
+
 ## v0.6.19 — SoC/mileage freshness guard fix (2026-06-17)
 
 ### Summary
