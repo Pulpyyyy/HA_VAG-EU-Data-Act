@@ -21,7 +21,7 @@ _BY_ENGLISH: dict[str, dict[str, str]] = {
         "nl": "Laaddoel",
     },
     "Charge bulk threshold": {
-        "de": "Bulk-Ladeschwelle",
+        "de": "Schwelle Langsamladung",
         "fr": "Seuil de charge bulk",
         "it": "Soglia carica bulk",
         "nl": "Bulk-laaddrempel",
@@ -51,7 +51,7 @@ _BY_ENGLISH: dict[str, dict[str, str]] = {
         "nl": "Resterende laadtijd",
     },
     "Remaining time to bulk": {
-        "de": "Restzeit bis Bulk",
+        "de": "Restzeit bis Langsamladung",
         "fr": "Temps restant jusqu'au bulk",
         "it": "Tempo rimanente al bulk",
         "nl": "Resterende tijd tot bulk",

@@ -111,7 +111,7 @@
         "name": "Ladeziel"
       },
       "battery_state_report_charge_bulk_threshold": {
-        "name": "Bulk-Ladeschwelle"
+        "name": "Schwelle Langsamladung"
       },
       "battery_state_report_charge_power": {
         "name": "Ladeleistung"
@@ -126,7 +126,7 @@
         "name": "Restladedauer"
       },
       "battery_state_report_remaining_charging_time_bulk": {
-        "name": "Restzeit bis Bulk"
+        "name": "Restzeit bis Langsamladung"
       },
       "energy_contents_current_energy_content_physical_value": {
         "name": "Batterieenergie"
@@ -411,7 +411,7 @@
         }
       },
       "immediate_action_state": {
-        "name": "Ladeaktionsstatus",
+        "name": "Sofortlade-Status",
         "state": {
           "IMMEDIATE_ACTION_STATE_INVALID": "Ungültig",
           "IMMEDIATE_ACTION_STATE_IMMEDIATE_CHARGING": "Sofortladen",

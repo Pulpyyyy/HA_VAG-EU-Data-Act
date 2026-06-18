@@ -270,7 +270,7 @@ SENSORS: dict[str, dict] = {
     "immediate_action_state": {
         "names": {
             "en": "Charging action state",
-            "de": "Ladeaktionsstatus",
+            "de": "Sofortlade-Status",
             "fr": "État action de charge",
             "it": "Stato azione di carica",
             "nl": "Laadactiestatus",

@@ -1,5 +1,29 @@
 # Release notes
 
+## v0.6.22 — Clearer German charging sensor labels (2026-06-18)
+
+### Summary
+
+Renames three German entity display names that confused users testing a Cupra
+Born ([#23](https://github.com/TommiG1/HA_VAG-EU-Data-Act/issues/23)). English
+and other languages are unchanged. Entity IDs are unchanged — only friendly
+names in the HA UI update after reload.
+
+### German label changes
+
+| translation_key | Old (DE) | New (DE) |
+|-----------------|----------|----------|
+| `battery_state_report_charge_bulk_threshold` | Bulk-Ladeschwelle | **Schwelle Langsamladung** |
+| `battery_state_report_remaining_charging_time_bulk` | Restzeit bis Bulk | **Restzeit bis Langsamladung** |
+| `immediate_action_state` | Ladeaktionsstatus | **Sofortlade-Status** |
+
+- **Schwelle Langsamladung** — SOC % at which charging switches to the slower
+  phase toward 100% (replaces VW-internal “bulk” jargon).
+- **Sofortlade-Status** — active immediate-charging action; clearly distinct
+  from **Lademodus** (*charge mode* setting).
+
+---
+
 ## v0.6.21 — Per-sensor data freshness attributes (2026-06-18)
 
 ### Summary
