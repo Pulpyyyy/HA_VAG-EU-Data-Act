@@ -1400,6 +1400,15 @@ CURATED_SENSORS_FLAT: tuple[CuratedSensor, ...] = (
         icon="mdi:lightning-bolt-circle",
     ),
     CuratedSensor(
+        "boardnetBatteryVoltageIndication",
+        "12V battery voltage",
+        "voltage",
+        "V",
+        "measurement",
+        icon="mdi:car-battery",
+        suggested_display_precision=2,
+    ),
+    CuratedSensor(
         "last_charge_kwh",
         "Last charge",
         None,

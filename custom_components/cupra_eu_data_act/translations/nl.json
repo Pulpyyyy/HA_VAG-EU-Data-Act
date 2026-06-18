@@ -218,6 +218,9 @@
       "charged_energy": {
         "name": "Totaal geladen energie"
       },
+      "boardnetBatteryVoltageIndication": {
+        "name": "12V-accuspanning"
+      },
       "fuel_level_current_level": {
         "name": "Brandstofniveau"
       },

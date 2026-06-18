@@ -98,6 +98,28 @@ def main() -> int:
         data.find_by_field(terramar.points, "charging_power").value,
         0,
     )
+    terramar_12v = data.Dataset.from_json(
+        {
+            "vin": "V",
+            "Data": [
+                {
+                    "key": "bnv",
+                    "dataFieldName": "boardnetBatteryVoltageIndication",
+                    "value": "12.85",
+                },
+            ],
+        }
+    )
+    check(
+        "boardnetBatteryVoltageIndication curated flat",
+        "boardnetBatteryVoltageIndication" in data.CURATED_FIELDS,
+        True,
+    )
+    check(
+        "12V boardnet voltage value",
+        data.find_by_field(terramar_12v.points, "boardnetBatteryVoltageIndication").value,
+        12.85,
+    )
 
     # --- dataset (committed fixture) --------------------------------------
     print("sample dataset:")

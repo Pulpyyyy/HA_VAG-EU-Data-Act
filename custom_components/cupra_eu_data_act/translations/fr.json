@@ -218,6 +218,9 @@
       "charged_energy": {
         "name": "Énergie totale chargée"
       },
+      "boardnetBatteryVoltageIndication": {
+        "name": "Tension batterie 12V"
+      },
       "fuel_level_current_level": {
         "name": "Niveau de carburant"
       },

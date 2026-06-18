@@ -1,13 +1,21 @@
 # Release notes
 
-## v0.6.22 — Clearer German charging sensor labels (2026-06-18)
+## v0.6.22 — German charging labels & Terramar 12V voltage (2026-06-18)
 
 ### Summary
 
 Renames three German entity display names that confused users testing a Cupra
-Born ([#23](https://github.com/TommiG1/HA_VAG-EU-Data-Act/issues/23)). English
-and other languages are unchanged. Entity IDs are unchanged — only friendly
-names in the HA UI update after reload.
+Born ([#23](https://github.com/TommiG1/HA_VAG-EU-Data-Act/issues/23)), and
+exposes **12V boardnet battery voltage** for Terramar PHEV / flat-format
+payloads ([#21](https://github.com/TommiG1/HA_VAG-EU-Data-Act/issues/21)).
+English and other languages are unchanged for the label renames. Entity IDs are
+unchanged — only friendly names in the HA UI update after reload.
+
+### Terramar 12V battery voltage (#21)
+
+- Curated flat-field sensor for `boardnetBatteryVoltageIndication` (`device_class:
+  voltage`, unit `V`, 2 decimal places).
+- Appears only when the portal delivers the field (e.g. Cupra Terramar PHEV).
 
 ### German label changes
 

@@ -218,6 +218,9 @@
       "charged_energy": {
         "name": "Gesamt geladene Energie"
       },
+      "boardnetBatteryVoltageIndication": {
+        "name": "12V-Batteriespannung"
+      },
       "fuel_level_current_level": {
         "name": "Tankfüllstand"
       },

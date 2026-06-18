@@ -104,6 +104,12 @@ _BY_ENGLISH: dict[str, dict[str, str]] = {
         "it": "Tempo clima rimanente",
         "nl": "Resterende klimaattijd",
     },
+    "12V battery voltage": {
+        "de": "12V-Batteriespannung",
+        "fr": "Tension batterie 12V",
+        "it": "Tensione batteria 12V",
+        "nl": "12V-accuspanning",
+    },
     "Residual energy": {
         "de": "Restenergie",
         "fr": "Énergie résiduelle",
@@ -507,6 +513,7 @@ _SENSOR_KEYS: dict[str, str] = {
     "charging_power": "Charge power",
     "remaining_charging_time": "Remaining charging time",
     "charged_energy": "Total energy charged",
+    "boardnetBatteryVoltageIndication": "12V battery voltage",
     "fuel_level_current_level": "Fuel level",
     "fuel_level__accuracy": "Fuel level accuracy",
     "cng_gas_level": "CNG gas level",
