@@ -263,6 +263,33 @@
       "tyre_pressure_differential_spare_tyre": {
         "name": "Tire pressure diff spare"
       },
+      "tyre_pressure_required_front_left": {
+        "name": "Required tire pressure FL"
+      },
+      "tyre_pressure_required_front_right": {
+        "name": "Required tire pressure FR"
+      },
+      "tyre_pressure_required_rear_left": {
+        "name": "Required tire pressure RL"
+      },
+      "tyre_pressure_required_rear_right": {
+        "name": "Required tire pressure RR"
+      },
+      "tyre_pressure_required_spare_tyre": {
+        "name": "Required tire pressure spare"
+      },
+      "short_term_data_zero_emission_distance": {
+        "name": "Zero-emission distance (short)"
+      },
+      "short_term_data_range_gain_distance": {
+        "name": "Range gain distance (short)"
+      },
+      "long_term_data_zero_emission_distance": {
+        "name": "Zero-emission distance (long)"
+      },
+      "long_term_data_range_gain_distance": {
+        "name": "Range gain distance (long)"
+      },
       "position_front_left_door_window_lifter": {
         "name": "Front left window position"
       },

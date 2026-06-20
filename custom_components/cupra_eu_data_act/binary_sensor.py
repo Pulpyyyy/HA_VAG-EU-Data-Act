@@ -8,6 +8,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.util import dt as dt_util
 
 from . import EudaConfigEntry
 from .coordinator import EudaCoordinator
@@ -17,6 +18,7 @@ from .data import (
     CuratedBinary,
     DataPoint,
     curated_translation_key,
+    datapoint_freshness_attributes,
     decode_binary_state,
     detect_dataset_format,
     find_by_field,
@@ -88,3 +90,8 @@ class EudaBinarySensor(EudaEntity, BinarySensorEntity):
             else None
         )
         return self._sticky(result)
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        dp = find_by_field(self.coordinator.data or {}, self._curated.field_name)
+        return datapoint_freshness_attributes(dp, now=dt_util.utcnow())

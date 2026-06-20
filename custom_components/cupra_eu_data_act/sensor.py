@@ -217,6 +217,11 @@ class EudaCuratedSensor(EudaEntity, SensorEntity):
 
             return decikelvin_to_celsius(str(value))
 
+        if transform == "hectometers_to_km":
+            from .data import hectometers_to_km
+
+            return hectometers_to_km(value)
+
         return value
 
     def _source_datapoint(self) -> DataPoint | None:
@@ -323,6 +328,12 @@ class EudaCuratedSensor(EudaEntity, SensorEntity):
                 transformed = electr_consumption_kwh_per_1000km_to_kwh_per_100km(
                     raw_value
                 )
+                return self._sticky(transformed)
+
+            elif self._curated.transform == "hectometers_to_km":
+                from .data import hectometers_to_km
+
+                transformed = hectometers_to_km(raw_value)
                 return self._sticky(transformed)
 
             elif self._curated.transform == "deci_kwh":

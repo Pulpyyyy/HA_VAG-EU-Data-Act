@@ -298,6 +298,21 @@ def main() -> int:
         data.electr_consumption_kwh_per_1000km_to_kwh_per_100km(180),
         18.0,
     )
+    check(
+        "distance 100m -> km (issue #33)",
+        data.hectometers_to_km(160),
+        16.0,
+    )
+    check(
+        "issue #33 curated distance fields registered",
+        "short_term_data_zero_emission_distance" in data.CURATED_FIELDS,
+        True,
+    )
+    check(
+        "issue #33 required tyre pressure registered",
+        "tyre_pressure_required_front_left" in data.CURATED_FIELDS,
+        True,
+    )
 
     # --- raw unique_id namespaced by VIN (multi-vehicle) ----------------
     print("raw unique_id namespacing:")
@@ -495,6 +510,16 @@ def main() -> int:
         data.datapoint_freshness_attributes(None),
         {},
     )
+    zip_name = "WVWZZZTESTVIN0001_20260102000000.zip"
+    stamped = data.stamp_source_dataset(
+        {"k": data.DataPoint(key="k", field_name="mileage", raw_value="100")},
+        zip_name,
+    )
+    check(
+        "source_dataset attribute (issue #31)",
+        data.datapoint_freshness_attributes(stamped["k"]).get("source_dataset"),
+        zip_name,
+    )
 
     # Monotonic fields (the odometer): one dataset can carry two mileage.value
     # slots from report snapshots that lag each other. The freshest/last-in-ZIP
@@ -596,6 +621,11 @@ def main() -> int:
     check(
         "tyre pressure 24 bar plausible",
         data.is_sentinel(24, "tyre_pressure_actual_front_left"),
+        False,
+    )
+    check(
+        "required tyre pressure 1 bar plausible (issue #33)",
+        data.is_sentinel(1, "tyre_pressure_required_front_left"),
         False,
     )
     check(

@@ -263,6 +263,33 @@
       "tyre_pressure_differential_spare_tyre": {
         "name": "Reifendruck-Diff. Ersatz"
       },
+      "tyre_pressure_required_front_left": {
+        "name": "Soll-Reifendruck VL"
+      },
+      "tyre_pressure_required_front_right": {
+        "name": "Soll-Reifendruck VR"
+      },
+      "tyre_pressure_required_rear_left": {
+        "name": "Soll-Reifendruck HL"
+      },
+      "tyre_pressure_required_rear_right": {
+        "name": "Soll-Reifendruck HR"
+      },
+      "tyre_pressure_required_spare_tyre": {
+        "name": "Soll-Reifendruck Ersatz"
+      },
+      "short_term_data_zero_emission_distance": {
+        "name": "Null-Emissions-Strecke (kurz)"
+      },
+      "short_term_data_range_gain_distance": {
+        "name": "Reichweitenzugewinn-Strecke (kurz)"
+      },
+      "long_term_data_zero_emission_distance": {
+        "name": "Null-Emissions-Strecke (lang)"
+      },
+      "long_term_data_range_gain_distance": {
+        "name": "Reichweitenzugewinn-Strecke (lang)"
+      },
       "position_front_left_door_window_lifter": {
         "name": "Fensterposition VL"
       },

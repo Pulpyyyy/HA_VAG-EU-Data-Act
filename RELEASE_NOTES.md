@@ -1,5 +1,41 @@
 # Release notes
 
+## v0.6.24 — Tyre-pressure curation, distance units & source_dataset (2026-06-20)
+
+### Summary
+
+Addresses the remaining sensor-mapping gaps from upstream
+[mikrohard#33](https://github.com/mikrohard/hass-vw-eu-data-act/issues/33) and
+completes per-entity provenance from
+[mikrohard#31](https://github.com/mikrohard/hass-vw-eu-data-act/issues/31).
+
+### Sensor mapping (#33)
+
+- **`tyre_pressure_required_*`** (5 wheels) — curated as `bar` with
+  `device_class: pressure` instead of the ambiguous portal unit
+  `"10kPA / Bar / PSI/ kPA"`.
+- **`tyre_pressure_differential_*`** — now also `bar` + `device_class: pressure`.
+- **Zero-emission / range-gain distances** — `short_term_data_zero_emission_distance`,
+  `short_term_data_range_gain_distance`, and long-term counterparts convert
+  portal `100m` hectometers to **km** (÷10).
+- Sentinel filtering for tyre validity codes (`0`/`1`) is limited to
+  **`tyre_pressure_actual_*`** so required-pressure readings around 1.0 bar are
+  not treated as invalid.
+
+### Source dataset attribute (#31)
+
+Every curated sensor, binary sensor, and raw diagnostic now exposes
+**`source_dataset`** (portal ZIP filename) alongside the existing
+`data_captured_at` / `age_minutes` freshness attributes. Populated on download
+and cache restore.
+
+### Tests
+
+- Offline coverage for `hectometers_to_km`, curated field registration, required
+  tyre-pressure sentinel behaviour, and `source_dataset` attributes.
+
+---
+
 ## v0.6.23 — Remove incorrect monthly electric consumption helper (2026-06-19)
 
 ### Summary

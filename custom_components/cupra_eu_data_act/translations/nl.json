@@ -263,6 +263,33 @@
       "tyre_pressure_differential_spare_tyre": {
         "name": "Spanningverschil reserve"
       },
+      "tyre_pressure_required_front_left": {
+        "name": "Vereiste bandenspanning LV"
+      },
+      "tyre_pressure_required_front_right": {
+        "name": "Vereiste bandenspanning RV"
+      },
+      "tyre_pressure_required_rear_left": {
+        "name": "Vereiste bandenspanning LA"
+      },
+      "tyre_pressure_required_rear_right": {
+        "name": "Vereiste bandenspanning RA"
+      },
+      "tyre_pressure_required_spare_tyre": {
+        "name": "Vereiste bandenspanning reserve"
+      },
+      "short_term_data_zero_emission_distance": {
+        "name": "Zero-emissieafstand (kort)"
+      },
+      "short_term_data_range_gain_distance": {
+        "name": "Bereikwinst-afstand (kort)"
+      },
+      "long_term_data_zero_emission_distance": {
+        "name": "Zero-emissieafstand (lang)"
+      },
+      "long_term_data_range_gain_distance": {
+        "name": "Bereikwinst-afstand (lang)"
+      },
       "position_front_left_door_window_lifter": {
         "name": "Raampositie LV"
       },

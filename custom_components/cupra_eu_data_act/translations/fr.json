@@ -263,6 +263,33 @@
       "tyre_pressure_differential_spare_tyre": {
         "name": "Écart pression secours"
       },
+      "tyre_pressure_required_front_left": {
+        "name": "Pression cible AVG"
+      },
+      "tyre_pressure_required_front_right": {
+        "name": "Pression cible AVD"
+      },
+      "tyre_pressure_required_rear_left": {
+        "name": "Pression cible ARG"
+      },
+      "tyre_pressure_required_rear_right": {
+        "name": "Pression cible ARD"
+      },
+      "tyre_pressure_required_spare_tyre": {
+        "name": "Pression cible secours"
+      },
+      "short_term_data_zero_emission_distance": {
+        "name": "Distance zéro émission (court)"
+      },
+      "short_term_data_range_gain_distance": {
+        "name": "Distance gain autonomie (court)"
+      },
+      "long_term_data_zero_emission_distance": {
+        "name": "Distance zéro émission (long)"
+      },
+      "long_term_data_range_gain_distance": {
+        "name": "Distance gain autonomie (long)"
+      },
       "position_front_left_door_window_lifter": {
         "name": "Position vitre AVG"
       },

@@ -31,7 +31,7 @@ from .const import (
     SERVER_ERROR_BACKOFF_INTERVALS,
     SUBSCRIPTION_VALIDITY,
 )
-from .data import Dataset, DataPoint, latest_captured_time, merge_data_points
+from .data import Dataset, DataPoint, latest_captured_time, merge_data_points, stamp_source_dataset
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -198,7 +198,7 @@ class EudaCoordinator(DataUpdateCoordinator[dict[str, DataPoint]]):
             for item in self._cache.list_entries(self.vin)
         ]
         self._is_initial_setup = False
-        return points
+        return stamp_source_dataset(points, name)
 
     async def async_restore_from_cache(self) -> dict[str, DataPoint] | None:
         """Load the newest local ZIP when memory was cleared (e.g. after HA restart)."""
@@ -492,7 +492,9 @@ class EudaCoordinator(DataUpdateCoordinator[dict[str, DataPoint]]):
         self.status_label = "ok"
         self.empty_snapshot_count = 0
 
-        new_points = self.latest_dataset.points
+        new_points = stamp_source_dataset(
+            self.latest_dataset.points, self.latest_dataset_name
+        )
         if not new_points:
             if self.data:
                 _LOGGER.debug(

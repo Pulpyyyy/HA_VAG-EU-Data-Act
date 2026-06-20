@@ -240,6 +240,8 @@ class DataPoint:
     # dataset-level stamp is their only freshness signal for cross-dataset
     # selection in ``find_by_field`` and ``merge_data_points``.
     captured_at: datetime | None = None
+    # Portal ZIP filename that last supplied this point (upstream #31).
+    source_dataset: str | None = None
 
     @property
     def value(self):
@@ -355,9 +357,12 @@ def datapoint_freshness_attributes(
     """Entity attributes exposing when a reading was captured and how old it is."""
     if dp is None:
         return {}
+    attrs: dict[str, str | int] = {}
+    if dp.source_dataset:
+        attrs["source_dataset"] = dp.source_dataset
     captured = _datapoint_freshness(dp)
     if captured is None:
-        return {}
+        return attrs
     if now is None:
         now = datetime.now(timezone.utc)
     if captured.tzinfo is None:
@@ -365,11 +370,25 @@ def datapoint_freshness_attributes(
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     age_minutes = max(0, int((now - captured).total_seconds() // 60))
-    return {
-        "data_captured_at": captured.isoformat(),
-        "age_minutes": age_minutes,
-        "freshness_source": datapoint_freshness_source(dp),
-    }
+    attrs.update(
+        {
+            "data_captured_at": captured.isoformat(),
+            "age_minutes": age_minutes,
+            "freshness_source": datapoint_freshness_source(dp),
+        }
+    )
+    return attrs
+
+
+def stamp_source_dataset(
+    points: dict[str, DataPoint], dataset_name: str | None
+) -> dict[str, DataPoint]:
+    """Tag every point with the portal ZIP it came from."""
+    if not dataset_name:
+        return points
+    for dp in points.values():
+        dp.source_dataset = dataset_name
+    return points
 
 
 def _as_float(raw) -> float | None:
@@ -674,6 +693,14 @@ def total_charged_energy_kwh(points: dict[str, "DataPoint"]) -> float | None:
     return None
 
 
+def hectometers_to_km(value) -> float | None:
+    """Convert portal distances in 100 m (hectometers) to km."""
+    try:
+        return round(float(value) / 10, 1)
+    except (ValueError, TypeError):
+        return None
+
+
 def electr_consumption_kwh_per_1000km_to_kwh_per_100km(value) -> float | None:
     """Convert electric consumption from kWh/1000km to kWh/100km.
 
@@ -741,7 +768,7 @@ def is_sentinel(value, field_name: str | None = None) -> bool:
         return True
     if (
         field_name
-        and field_name.startswith("tyre_pressure_")
+        and field_name.startswith("tyre_pressure_actual_")
         and as_float in _TYRE_PRESSURE_STATUS_CODES
     ):
         return True
@@ -1516,43 +1543,83 @@ CURATED_SENSORS_FLAT: tuple[CuratedSensor, ...] = (
         icon="mdi:car-tire-alert",
     ),
     CuratedSensor(
+        "tyre_pressure_required_front_left",
+        "Required tire pressure FL",
+        "pressure",
+        "bar",
+        "measurement",
+        icon="mdi:car-tire-alert",
+    ),
+    CuratedSensor(
+        "tyre_pressure_required_front_right",
+        "Required tire pressure FR",
+        "pressure",
+        "bar",
+        "measurement",
+        icon="mdi:car-tire-alert",
+    ),
+    CuratedSensor(
+        "tyre_pressure_required_rear_left",
+        "Required tire pressure RL",
+        "pressure",
+        "bar",
+        "measurement",
+        icon="mdi:car-tire-alert",
+    ),
+    CuratedSensor(
+        "tyre_pressure_required_rear_right",
+        "Required tire pressure RR",
+        "pressure",
+        "bar",
+        "measurement",
+        icon="mdi:car-tire-alert",
+    ),
+    CuratedSensor(
+        "tyre_pressure_required_spare_tyre",
+        "Required tire pressure spare",
+        "pressure",
+        "bar",
+        "measurement",
+        icon="mdi:car-tire-alert",
+    ),
+    CuratedSensor(
         "tyre_pressure_differential_front_left",
         "Tire pressure diff FL",
-        None,
-        None,
-        None,
+        "pressure",
+        "bar",
+        "measurement",
         icon="mdi:gauge",
     ),
     CuratedSensor(
         "tyre_pressure_differential_front_right",
         "Tire pressure diff FR",
-        None,
-        None,
-        None,
+        "pressure",
+        "bar",
+        "measurement",
         icon="mdi:gauge",
     ),
     CuratedSensor(
         "tyre_pressure_differential_rear_left",
         "Tire pressure diff RL",
-        None,
-        None,
-        None,
+        "pressure",
+        "bar",
+        "measurement",
         icon="mdi:gauge",
     ),
     CuratedSensor(
         "tyre_pressure_differential_rear_right",
         "Tire pressure diff RR",
-        None,
-        None,
-        None,
+        "pressure",
+        "bar",
+        "measurement",
         icon="mdi:gauge",
     ),
     CuratedSensor(
         "tyre_pressure_differential_spare_tyre",
         "Tire pressure diff spare",
-        None,
-        None,
-        None,
+        "pressure",
+        "bar",
+        "measurement",
         icon="mdi:gauge",
     ),
     # === Window Positions (0-100%) ===
@@ -1739,6 +1806,46 @@ CURATED_SENSORS_FLAT: tuple[CuratedSensor, ...] = (
         "min",
         "total_increasing",
         icon="mdi:clock-outline",
+    ),
+    CuratedSensor(
+        "short_term_data_zero_emission_distance",
+        "Zero-emission distance (short)",
+        "distance",
+        "km",
+        "measurement",
+        icon="mdi:leaf",
+        transform="hectometers_to_km",
+        suggested_display_precision=1,
+    ),
+    CuratedSensor(
+        "short_term_data_range_gain_distance",
+        "Range gain distance (short)",
+        "distance",
+        "km",
+        "measurement",
+        icon="mdi:map-marker-distance",
+        transform="hectometers_to_km",
+        suggested_display_precision=1,
+    ),
+    CuratedSensor(
+        "long_term_data_zero_emission_distance",
+        "Zero-emission distance (long)",
+        "distance",
+        "km",
+        "measurement",
+        icon="mdi:leaf",
+        transform="hectometers_to_km",
+        suggested_display_precision=1,
+    ),
+    CuratedSensor(
+        "long_term_data_range_gain_distance",
+        "Range gain distance (long)",
+        "distance",
+        "km",
+        "measurement",
+        icon="mdi:map-marker-distance",
+        transform="hectometers_to_km",
+        suggested_display_precision=1,
     ),
     # === Oil Level ===
     CuratedSensor(

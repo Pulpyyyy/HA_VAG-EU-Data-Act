@@ -263,6 +263,33 @@
       "tyre_pressure_differential_spare_tyre": {
         "name": "Diff. pressione scorta"
       },
+      "tyre_pressure_required_front_left": {
+        "name": "Pressione target ASX"
+      },
+      "tyre_pressure_required_front_right": {
+        "name": "Pressione target ADX"
+      },
+      "tyre_pressure_required_rear_left": {
+        "name": "Pressione target PSX"
+      },
+      "tyre_pressure_required_rear_right": {
+        "name": "Pressione target PDX"
+      },
+      "tyre_pressure_required_spare_tyre": {
+        "name": "Pressione target scorta"
+      },
+      "short_term_data_zero_emission_distance": {
+        "name": "Distanza zero emissioni (breve)"
+      },
+      "short_term_data_range_gain_distance": {
+        "name": "Distanza guadagno autonomia (breve)"
+      },
+      "long_term_data_zero_emission_distance": {
+        "name": "Distanza zero emissioni (lungo)"
+      },
+      "long_term_data_range_gain_distance": {
+        "name": "Distanza guadagno autonomia (lungo)"
+      },
       "position_front_left_door_window_lifter": {
         "name": "Posizione finestrino ASX"
       },
