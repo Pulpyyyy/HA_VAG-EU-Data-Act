@@ -611,6 +611,11 @@ CHARGE_RATE_UNIT_BY_ENUM: dict[str, str] = {
     "CHARGE_RATE_UNIT_KM_PER_MIN": "km/min",
     "CHARGE_RATE_UNIT_MILES_PER_H": "mi/h",
     "CHARGE_RATE_UNIT_MILES_PER_MIN": "mi/min",
+    # Flat PHEV (Passat/Golf) charge_rate_unit strings
+    "KM_PER_H": "km/h",
+    "KM_PER_MIN": "km/min",
+    "MILES_PER_H": "mi/h",
+    "MILES_PER_MIN": "mi/min",
 }
 
 
@@ -1408,6 +1413,16 @@ CURATED_SENSORS_FLAT: tuple[CuratedSensor, ...] = (
         "kW",
         "measurement",
         icon="mdi:flash",
+    ),
+    CuratedSensor(
+        "actual_charge_rate",
+        "Charge rate",
+        None,
+        "km/h",
+        "measurement",
+        icon="mdi:speedometer",
+        unit_field="charge_rate_unit",
+        unit_resolver="charge_rate",
     ),
     CuratedSensor(
         "remaining_charging_time",

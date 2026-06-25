@@ -886,6 +886,33 @@ def main() -> int:
     )
     check("charge_rate declares unit_field", charge_rate.unit_field, "battery_state_report.charge_rate_unit")
     check("charge_rate unit_resolver", charge_rate.unit_resolver, "charge_rate")
+    check(
+        "flat km_per_h -> km/h",
+        data.resolve_charge_rate_unit("km_per_h"),
+        "km/h",
+    )
+    check(
+        "flat miles_per_h -> mi/h",
+        data.resolve_charge_rate_unit("miles_per_h"),
+        "mi/h",
+    )
+    check(
+        "flat invalid -> None",
+        data.resolve_charge_rate_unit("invalid"),
+        None,
+    )
+    check("actual_charge_rate curated flat", "actual_charge_rate" in data.CURATED_FIELDS, True)
+    flat_charge_rate = next(
+        s
+        for s in data.CURATED_SENSORS_FLAT
+        if s.field_name == "actual_charge_rate"
+    )
+    check(
+        "flat charge_rate declares unit_field",
+        flat_charge_rate.unit_field,
+        "charge_rate_unit",
+    )
+    check("flat charge_rate unit_resolver", flat_charge_rate.unit_resolver, "charge_rate")
 
     def _charge_rate_unit(
         sticky: _StickyUnitProbe, value, unit_enum, *, usable_value=True

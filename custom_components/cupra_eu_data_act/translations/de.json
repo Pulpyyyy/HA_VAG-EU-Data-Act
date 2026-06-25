@@ -212,6 +212,9 @@
       "charging_power": {
         "name": "Ladeleistung"
       },
+      "actual_charge_rate": {
+        "name": "Laderate"
+      },
       "remaining_charging_time": {
         "name": "Restladedauer"
       },

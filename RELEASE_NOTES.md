@@ -1,5 +1,48 @@
 # Release notes
 
+## v0.6.25 — Passat PHEV flat charge rate (#27) (2026-06-25)
+
+### Summary
+
+Adds a curated **Charge rate** sensor for flat-format PHEVs (e.g. VW Passat,
+Golf) that expose `actual_charge_rate` and `charge_rate_unit` instead of the
+dotted `battery_state_report.*` fields ([#27](https://github.com/TommiG1/HA_VAG-EU-Data-Act/issues/27)).
+No scaling change — raw portal values are shown as delivered.
+
+**Charge rate ≠ charge power.** For wallbox power in kW, use **Charge power**
+(`charging_power` on flat PHEVs, `battery_state_report.charge_power` on
+ID.x/MEB). Charge rate is range gained over time (km/h or mi/h).
+
+### Flat PHEV charge rate (#27)
+
+- **`actual_charge_rate`** — curated flat sensor with `mdi:speedometer`, unit
+  resolved from companion `charge_rate_unit` (`km_per_h`, `miles_per_h`, etc.).
+- **`resolve_charge_rate_unit`** — maps flat unit strings in addition to existing
+  `CHARGE_RATE_UNIT_*` enums; `invalid` yields no unit.
+- **Unit gating** — same invalid/unusable-reading rules as the dotted charge-rate
+  sensor apply to `actual_charge_rate`.
+- **Translations** — `actual_charge_rate` entity name in EN/DE/FR/IT/NL.
+
+### Legacy helper: *Monthly electric consumption*
+
+If you upgraded from **v0.6.22 or earlier**, you may still have a
+`utility_meter` helper named *Monthly electric consumption*. The integration
+**no longer creates** this helper (removed in v0.6.23,
+[#24](https://github.com/TommiG1/HA_VAG-EU-Data-Act/issues/24)) — it summed
+driving-efficiency readings (`kWh/100km`) and produced meaningless monthly
+totals.
+
+- **Delete** the old helper under **Settings → Devices & services → Helpers**
+  if it is still present.
+- **Use instead:** *Monthly charged energy* (kWh) for monthly charging totals.
+
+### Tests
+
+- Offline checks for flat `actual_charge_rate` curation, flat unit resolution,
+  and `CURATED_FIELDS` registration.
+
+---
+
 ## v0.6.24 — Tyre-pressure curation, distance units & source_dataset (2026-06-20)
 
 ### Summary

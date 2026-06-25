@@ -47,6 +47,10 @@ _LAST_CONNECTED_CURATED_FIELDS = frozenset(
     {"mileage.value.timestamp", "mileage.timestamp"}
 )
 
+_CHARGE_RATE_FIELDS = frozenset(
+    {"battery_state_report.charge_rate", "actual_charge_rate"}
+)
+
 _REMAINING_CHARGE_TIME_FIELDS = frozenset(
     {
         "battery_state_report.remaining_charging_time_complete",
@@ -399,7 +403,7 @@ class EudaCuratedSensor(EudaEntity, SensorEntity):
                     resolved = resolver(dp.value)
                     if resolved:
                         consider = resolved
-                        if cur.field_name == "battery_state_report.charge_rate":
+                        if cur.field_name in _CHARGE_RATE_FIELDS:
                             value_dp = find_by_field(points, cur.field_name)
                             if value_dp is None or not is_usable_reading(
                                 value_dp.value, cur.field_name

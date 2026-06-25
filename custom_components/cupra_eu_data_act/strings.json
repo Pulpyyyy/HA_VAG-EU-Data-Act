@@ -212,6 +212,9 @@
       "charging_power": {
         "name": "Charge power"
       },
+      "actual_charge_rate": {
+        "name": "Charge rate"
+      },
       "remaining_charging_time": {
         "name": "Remaining charging time"
       },

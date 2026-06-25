@@ -69,6 +69,27 @@ get real data without Connect Plus, please share your model in the
 [community thread](https://community.home-assistant.io/t/beta-vw-group-eu-data-act-vehicle-data-for-vw-audi-skoda-seat-cupra-bentley-official-portal/1013514)
 — it helps other owners.
 
+### Why do I only see ~7 entities?
+
+**Normal right after setup.** Those are built-in diagnostic sensors (integration
+status, last connected, dataset generated, uncurated fields, etc.). Vehicle
+sensors (SoC, range, mileage, charging, …) are created automatically once the
+integration downloads the first ZIP with real content — **no reload needed**.
+
+Check the **Integration status** sensor on the device and **Settings → System →
+Repairs** for portal hints. Once status shows `ok` and **Uncurated fields** is
+greater than zero, many more entities should appear within one poll cycle.
+
+### How long until the first real data?
+
+Often **15–60 minutes** after activating the continuous request, sometimes
+**several hours**. Community reports also mention **1–3 days** — especially if the
+portal initially rejected the request, the car has not uploaded telemetry yet, or
+you need one or two drives before the full **All Data** payload arrives.
+
+Empty `_no_content_found` snapshots in the first 15-minute windows are normal.
+**Persistent emptiness over days** is not — see the next section.
+
 ### Setup fails or no data yet?
 
 **Complete portal setup before Home Assistant.** The integration only downloads
@@ -83,10 +104,11 @@ portal has no **Identifier** yet for an active continuous request on that VIN
 On the portal, confirm:
 
 1. The vehicle is linked under **Data clusters → Vehicle overview**.
-2. A **continuous** (not one-time) **15-minute** request is active with **All
-   Data**.
+2. A **continuous** (not one-time) **15-minute** request is active with the
+   **All Data** dataset preset — not only **Charging**, and not a manual
+   selection of every individual field (see [portal setup](#portal-setup-required)).
 3. Real ZIP files appear for the VIN — first delivery can take **15–60 minutes,
-   sometimes several hours** after creating the request.
+   sometimes several hours, occasionally 1–3 days** after creating the request.
 4. Only **one** customised data request can be active at a time ([portal
    FAQ](https://eu-data-act.drivesomethinggreater.com/pl/en/service/faq.html)).
    A pending **one-time export** blocks a new continuous request until it
@@ -98,7 +120,30 @@ shows errors such as *We couldn't transmit your request*, that is a **portal-sid
 problem** — not something this integration can bypass.
 
 After a portal outage, some fields may show stale values until the car uploads
-fresh telemetry again (often after one drive).
+fresh telemetry again (often after one drive). Data can also stay stale for
+hours and then refresh in one burst — that is upstream portal behaviour, not
+something Home Assistant controls.
+
+### Portal keeps delivering only empty files for days?
+
+If login works and the continuous 15-minute request is active, but **every**
+portal ZIP is `_no_content_found` for **days** (not just the first hours), this
+is a **portal or vehicle-side** issue — not a Home Assistant or credential
+problem. The same model can work for other owners (e.g. one Golf 8 with 77
+entities while another receives only empty files).
+
+Things to try:
+
+1. **Delete and recreate** the data request on the portal — select the **All
+   Data** dataset preset, not a manual tick of every individual field.
+2. **Wake the car** (drive, ignition on, or open the mobile app) and wait
+   **24–48 hours**.
+3. Contact **portal support** via the portal Contact section — responses can be
+   slow or absent; the integration developer cannot influence the portal backend.
+
+The integration cannot bypass an empty portal pipeline. If you are stuck here,
+share your brand and model (no VIN) in the
+[community thread](https://community.home-assistant.io/t/beta-vw-group-eu-data-act-vehicle-data-for-vw-audi-skoda-seat-cupra-bentley-official-portal/1013514).
 
 ### Disabled diagnostic sensors?
 
@@ -114,10 +159,14 @@ instead.
 2. Sign in and connect your vehicle under **Data clusters → Vehicle overview**
 3. Create a **continuous** data request with **15-minute** frequency — **not** a
    one-time export
-4. When choosing the dataset, select **All Data** — not only **Charging**. A
-   charging-only request delivers far fewer fields (battery, range, mileage, and
-   many other sensors need the full dataset).
-5. Wait until ZIP files with real content appear for your VIN
+4. When choosing the dataset, select the **All Data** preset — not only
+   **Charging**, and not a manual selection of every individual field. Pick the
+   **All Data** cluster/preset in the portal UI; a charging-only request
+   delivers far fewer fields, and manually ticking all fields can behave
+   differently from the preset (community reports: empty ZIPs until the request
+   was recreated with **All Data** only).
+5. Wait until ZIP files with real content appear for your VIN — this can take
+   from minutes up to **1–3 days** in some cases
 
 Then install the integration and complete setup in Home Assistant.
 
