@@ -59,13 +59,19 @@ BRANDS: tuple[BrandConfig, ...] = (
         oidc_state_key="SEAT",
         title="SEAT",
         manufacturer="SEAT",
-        client_id="f85e5b69-e3b2-43aa-9c0d-1b7d0e0b576f@apps_vw-dilab_com",
+        # Capture-confirmed from a real SEAT login on this EU Data Act portal
+        # (identity.vwgroup.io/oidc/v1/oauth/sso?clientId=...). SEAT does NOT
+        # share Cupra's client_id here, contrary to the shared f85e5b69 default.
+        client_id="7195a1a8-1d28-4253-acf2-c347afffa081@apps_vw-dilab_com",
     ),
     BrandConfig(
         slug="cupra",
         oidc_state_key="CUPRA",
         title="Cupra",
         manufacturer="Cupra",
+        # UNVERIFIED for this portal: SEAT was confirmed to use a distinct
+        # client_id, so this f85e5b69 default likely needs a Cupra-specific
+        # value too. Replace once captured from a real Cupra login.
         client_id="f85e5b69-e3b2-43aa-9c0d-1b7d0e0b576f@apps_vw-dilab_com",
     ),
     BrandConfig(
